@@ -1,0 +1,101 @@
+# Monorepo root: Python/uv tooling runs in server/
+[tools]
+python = "3.13.3"
+uv = "0.7.18"
+
+[tasks.format]
+dir = "server"
+run = "uv run ruff format ."
+
+[tasks.lint]
+dir = "server"
+run = "uv run ruff check ."
+
+[tasks.fix-lint]
+dir = "server"
+run = "uv run ruff check . --fix"
+
+[tasks.lint-github]
+dir = "server"
+run = "uv run ruff check . --output-format=github"
+
+[tasks.typecheck]
+dir = "server"
+run = "uv run mypy ."
+
+[tasks.security]
+dir = "server"
+run = "uv run bandit -r . -c pyproject.toml"
+
+[tasks.test]
+dir = "server"
+run = "uv run pytest tests/ -v --cov=. --cov-report=term-missing --cov-report=xml:coverage.xml --junitxml=pytest.xml -n auto"
+
+[tasks.test-fast]
+dir = "server"
+run = "uv run pytest tests/ -v -n auto"
+
+[tasks.test-watch]
+dir = "server"
+run = "uv run pytest tests/ -v --cov=. --cov-report=term-missing -f"
+
+[tasks.setup]
+dir = "server"
+run = """
+mise install
+uv venv
+uv sync
+"""
+
+[tasks.migrate]
+dir = "server"
+run = "uv run alembic upgrade head"
+
+[tasks.migrate-mock]
+dir = "server"
+run = """
+uv run alembic upgrade head
+uv run python scripts/seed_mock_data.py
+"""
+
+[tasks.migrate-create]
+dir = "server"
+run = "uv run alembic revision --autogenerate -m"
+
+[tasks.migrate-history]
+dir = "server"
+run = "uv run alembic history --verbose"
+
+[tasks.migrate-current]
+dir = "server"
+run = "uv run alembic current"
+
+[tasks.migrate-rollback]
+dir = "server"
+run = "uv run alembic downgrade -1"
+
+[tasks.docker-restart]
+dir = "server"
+run = """
+docker compose down
+docker compose up --build
+"""
+
+[tasks.docker-reset]
+dir = "server"
+run = """
+docker compose down -v
+docker compose up --build
+"""
+
+[tasks.docker-logs]
+dir = "server"
+run = "docker compose logs -f server"
+
+[tasks.docker-db-shell]
+dir = "server"
+run = "docker compose exec postgres psql -U pixelsimu -d pixel_simu_arena"
+
+[tasks.seed-local]
+dir = "server"
+run = "uv run python scripts/seed_mock_data.py"
