@@ -1,0 +1,142 @@
+.game-screen {
+  min-height: 100vh;
+  padding: 20px;
+  background: #1a1a1a;
+}
+
+.game-screen.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  font-size: 24px;
+  color: #00ff00;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.game-header h1 {
+  font-size: 28px;
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.game-canvas {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  background: #000;
+  border: 2px solid #444;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.deck-cards {
+  margin-top: 20px;
+  padding: 16px;
+  background: #2a2a2a;
+  border-radius: 8px;
+}
+
+.deck-cards-label {
+  font-size: 14px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.deck-cards-list {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.victory-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.victory-message {
+  background: #2a2a2a;
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+  border: 3px solid #444;
+  animation: slideUp 0.5s;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.victory-message .win h2 {
+  font-size: 48px;
+  color: #00ff00;
+  margin-bottom: 16px;
+  text-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+}
+
+.victory-message .lose h2 {
+  font-size: 48px;
+  color: #ff0044;
+  margin-bottom: 16px;
+  text-shadow: 0 0 20px rgba(255, 0, 68, 0.7);
+}
+
+.victory-message p {
+  font-size: 18px;
+  color: #ccc;
+  margin-bottom: 24px;
+}
+
+.victory-message button {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: bold;
+  background: #00ff00;
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.victory-message button:hover {
+  background: #00cc00;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 255, 0, 0.5);
+}
