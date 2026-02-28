@@ -68,7 +68,17 @@ app.include_router(deck.router, prefix="/deck", tags=["deck"])
 @app.get("/health")
 async def health_check():
     """ヘルスチェックエンドポイント"""
-    return {"status": "ok", "service": "pixel-simu-arena"}
+    from app.storage.session import get_session_manager
+
+    session_manager = get_session_manager()
+    active_matches = session_manager.count_matches()
+
+    return {
+        "status": "ok",
+        "service": "pixel-simu-arena",
+        "active_matches": active_matches,
+        "environment": get_settings().environment
+    }
 
 
 @app.get("/")

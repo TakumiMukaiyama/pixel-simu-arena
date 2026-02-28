@@ -8,6 +8,14 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException
 
+from app.api.exceptions import (
+    DeckNotFoundException,
+    InsufficientCostException,
+    MatchAlreadyFinishedException,
+    MatchNotFoundException,
+    UnitNotFoundException
+)
+
 from app.config import get_settings
 from app.engine.tick import process_tick, spawn_unit_in_game
 from app.schemas.api import (
@@ -42,14 +50,14 @@ async def start_match(request: MatchStartRequest):
     # デッキ取得
     player_deck = await get_deck(request.player_deck_id)
     if not player_deck:
-        raise HTTPException(status_code=404, detail="Player deck not found")
+        raise DeckNotFoundException(str(request.player_deck_id))
 
     # AIデッキ取得（指定されていない場合はランダム生成）
     ai_deck_id = request.ai_deck_id
     if ai_deck_id:
         ai_deck = await get_deck(ai_deck_id)
         if not ai_deck:
-            raise HTTPException(status_code=404, detail="AI deck not found")
+            raise DeckNotFoundException(str(ai_deck_id))
     else:
         # TODO: ランダムデッキ生成（今は同じデッキを使用）
         ai_deck = player_deck
@@ -100,7 +108,7 @@ async def tick_match(request: MatchTickRequest):
     game_state = session_manager.get_match(request.match_id)
 
     if not game_state:
-        raise HTTPException(status_code=404, detail="Match not found")
+        raise MatchNotFoundException(str(request.match_id))
 
     # tick処理
     events = process_tick(game_state)
@@ -132,15 +140,15 @@ async def spawn_unit(request: MatchSpawnRequest):
     game_state = session_manager.get_match(request.match_id)
 
     if not game_state:
-        raise HTTPException(status_code=404, detail="Match not found")
+        raise MatchNotFoundException(str(request.match_id))
 
     if game_state.is_finished():
-        raise HTTPException(status_code=400, detail="Match is already finished")
+        raise MatchAlreadyFinishedException(str(request.match_id))
 
     # ユニットスペック取得
     unit_spec = await get_unit_spec(request.unit_spec_id)
     if not unit_spec:
-        raise HTTPException(status_code=404, detail="Unit spec not found")
+        raise UnitNotFoundException(str(request.unit_spec_id))
 
     # コスト確認
     if request.side == "player":
@@ -151,7 +159,7 @@ async def spawn_unit(request: MatchSpawnRequest):
         raise HTTPException(status_code=400, detail="Invalid side (must be 'player' or 'ai')")
 
     if current_cost < unit_spec.cost:
-        raise HTTPException(status_code=400, detail="Insufficient cost")
+        raise InsufficientCostException(required=unit_spec.cost, available=current_cost)
 
     # UnitInstance作成
     initial_pos = 0.0 if request.side == "player" else 20.0
@@ -192,7 +200,7 @@ async def ai_decide_spawn_endpoint(request: AIDecideRequest):
     game_state = session_manager.get_match(request.match_id)
 
     if not game_state:
-        raise HTTPException(status_code=404, detail="Match not found")
+        raise MatchNotFoundException(str(request.match_id))
 
     if game_state.is_finished():
         return AIDecideResponse(
