@@ -1,0 +1,43 @@
+.app {
+  min-height: 100vh;
+  background: #1a1a1a;
+}
+
+.app-nav {
+  background: #2a2a2a;
+  border-bottom: 2px solid #444;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #00ff00;
+  text-decoration: none;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+}
+
+.nav-link {
+  color: #ccc;
+  text-decoration: none;
+  font-size: 16px;
+  transition: color 0.2s;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+.nav-link:hover {
+  color: #00ff00;
+  background: rgba(0, 255, 0, 0.1);
+}
