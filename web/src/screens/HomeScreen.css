@@ -1,0 +1,136 @@
+.home-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.home-content {
+  max-width: 800px;
+  width: 100%;
+  text-align: center;
+}
+
+.home-title {
+  font-size: 48px;
+  color: #00ff00;
+  margin-bottom: 16px;
+  text-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+  }
+  to {
+    text-shadow: 0 0 30px rgba(0, 255, 0, 0.9);
+  }
+}
+
+.home-subtitle {
+  font-size: 20px;
+  color: #999;
+  margin-bottom: 48px;
+}
+
+.home-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 48px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 32px;
+  font-size: 18px;
+  font-weight: bold;
+  background: #2a2a2a;
+  color: #f0f0f0;
+  border: 2px solid #444;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.nav-button:hover {
+  background: #333;
+  border-color: #00ff00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
+}
+
+.nav-button.primary {
+  background: linear-gradient(135deg, #00aa00 0%, #00ff00 100%);
+  color: #000;
+  border-color: #00ff00;
+  font-size: 20px;
+  padding: 20px 40px;
+}
+
+.nav-button.primary:hover {
+  background: linear-gradient(135deg, #00cc00 0%, #00ff33 100%);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.5);
+}
+
+.button-icon {
+  font-size: 24px;
+}
+
+.button-text {
+  flex: 1;
+}
+
+.home-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.info-card {
+  background: #2a2a2a;
+  border: 2px solid #444;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: left;
+}
+
+.info-card h3 {
+  font-size: 20px;
+  color: #00ff00;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.info-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-card li {
+  padding: 8px 0;
+  color: #ccc;
+  font-size: 14px;
+  position: relative;
+  padding-left: 24px;
+}
+
+.info-card li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: #00ff00;
+  font-weight: bold;
+}
