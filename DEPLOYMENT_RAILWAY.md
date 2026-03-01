@@ -16,27 +16,36 @@
 
 ## デプロイ手順
 
+**重要**: このプロジェクトはmonorepoです。Railway CLIではなく、**Webダッシュボードから手動で設定**する必要があります。
+
 ### 1. Railwayプロジェクトの作成
 
 1. [Railway Dashboard](https://railway.app/dashboard) にアクセス
 2. "New Project" をクリック
-3. "Deploy from GitHub repo" を選択
-4. このリポジトリ (`pixel-simu-arena`) を選択
+3. "Empty Project" を選択（後でサービスを追加します）
+4. プロジェクト名を設定（例: `pixel-simu-arena`）
 
 ### 2. バックエンドサービスの設定
 
 #### 2.1 サービスの追加
 
-1. プロジェクト画面で "New" → "GitHub Repo" をクリック
-2. 同じリポジトリを選択
-3. サービス名を `backend` に変更
+1. プロジェクト画面で **"+ New"** をクリック
+2. **"Service"** を選択
+3. **"GitHub Repo"** を選択
+4. リポジトリ `pixel-simu-arena` を選択
+5. サービス名を `backend` に変更（右クリック → Rename）
 
-#### 2.2 ルートディレクトリの設定
+#### 2.2 ルートディレクトリとビルダーの設定
 
-1. バックエンドサービスの "Settings" タブを開く
-2. "Service" セクションで以下を設定:
-   - **Root Directory**: `server`
-   - **Dockerfile Path**: `server/Dockerfile`
+**重要**: この設定をしないとビルドが失敗します。
+
+1. バックエンドサービスをクリック
+2. **"Settings"** タブを開く
+3. **"Source"** セクションで以下を設定:
+   - **Root Directory**: `server` と入力
+4. **"Deploy"** セクションで以下を設定:
+   - **Builder**: `Dockerfile` を選択
+5. 設定を保存
 
 #### 2.3 環境変数の設定
 
@@ -71,16 +80,22 @@ ENVIRONMENT=production
 
 #### 3.1 サービスの追加
 
-1. プロジェクト画面で "New" → "GitHub Repo" をクリック
-2. 同じリポジトリを選択
-3. サービス名を `frontend` に変更
+1. プロジェクト画面に戻る（左上のプロジェクト名をクリック）
+2. 再度 **"+ New"** → **"Service"** → **"GitHub Repo"** をクリック
+3. 同じリポジトリ `pixel-simu-arena` を選択
+4. サービス名を `frontend` に変更（右クリック → Rename）
 
-#### 3.2 ルートディレクトリの設定
+#### 3.2 ルートディレクトリとビルダーの設定
 
-1. フロントエンドサービスの "Settings" タブを開く
-2. "Service" セクションで以下を設定:
-   - **Root Directory**: `web`
-   - **Dockerfile Path**: `web/Dockerfile`
+**重要**: バックエンドと同様に設定が必要です。
+
+1. フロントエンドサービスをクリック
+2. **"Settings"** タブを開く
+3. **"Source"** セクションで以下を設定:
+   - **Root Directory**: `web` と入力
+4. **"Deploy"** セクションで以下を設定:
+   - **Builder**: `Dockerfile` を選択
+5. 設定を保存
 
 #### 3.3 環境変数の設定
 
@@ -149,6 +164,24 @@ https://frontend-production-yyyy.up.railway.app
 4. ゲームが正常に動作することを確認
 
 ## トラブルシューティング
+
+### "Railpack could not determine how to build the app"
+
+**症状**:
+```
+⚠ Script start.sh not found
+✖ Railpack could not determine how to build the app.
+```
+
+**原因**: Root Directoryが設定されていないため、Railwayがルートディレクトリを見ている。
+
+**解決方法**:
+1. サービスの **Settings** → **Source** を開く
+2. **Root Directory** を設定:
+   - バックエンド: `server`
+   - フロントエンド: `web`
+3. **Deploy** セクションで **Builder** を `Dockerfile` に設定
+4. 再デプロイ
 
 ### ビルドエラー
 

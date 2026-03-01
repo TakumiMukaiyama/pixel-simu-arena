@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ["nodejs-20_x", "nginx"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "nginx -g 'daemon off;'"
+
+[staticAssets]
+directory = "dist"
