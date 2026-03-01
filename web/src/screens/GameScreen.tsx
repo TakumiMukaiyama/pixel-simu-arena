@@ -113,8 +113,6 @@ export const GameScreen: React.FC = () => {
                 unitName: latestAiUnit?.name || 'Unknown Unit',
                 analysis: aiDecision.analysis
               }]);
-
-              console.log(`AI spawned unit: ${latestAiUnit?.name} - ${aiDecision.reason}`);
             } else {
               // 待機判断を記録
               setAiThoughts(prev => [...prev, {
@@ -123,8 +121,6 @@ export const GameScreen: React.FC = () => {
                 reason: aiDecision.reason,
                 analysis: aiDecision.analysis
               }]);
-
-              console.log(`AI waiting: ${aiDecision.reason}`);
             }
           } catch (aiError) {
             // AI判断エラーはログのみ（ゲームは継続）

@@ -55,26 +55,22 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
   useEffect(() => {
     // 既に同じユニット構成で読み込み済みの場合はスキップ
     if (loadedUnitIds === unitIds && assetsLoadingState === 'loaded') {
-      console.log(`Skipping preload: already loaded for unitIds ${unitIds}`);
       return;
     }
 
     // 読み込み中の場合はスキップ
     if (assetsLoadingState === 'loading') {
-      console.log('Skipping preload: already loading');
       return;
     }
 
     // 読み込む画像がない場合は即座にloaded状態にする
     if (imagesToPreload.length === 0) {
-      console.log('No images to preload, setting state to loaded');
       setAssetsLoadingState('loaded');
       setLoadedUnitIds(unitIds);
       return;
     }
 
     const preloadAssets = async () => {
-      console.log(`Starting to preload ${imagesToPreload.length} images for units: ${unitIds}`);
       setAssetsLoadingState('loading');
       setLoadingProgress(0);
 
@@ -95,7 +91,6 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
         });
 
         await Promise.all(loadPromises);
-        console.log('All images loaded successfully');
         setAssetsLoadingState('loaded');
         setLoadedUnitIds(unitIds); // 読み込み完了したユニット構成を記録
       } catch (error) {
@@ -268,15 +263,6 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
       );
     });
   }, [gameState.units, drawUnitHPBar]);
-
-  // デバッグ: 現在の状態をログ出力
-  console.log('[GameScene] Current state:', {
-    assetsLoadingState,
-    loadedUnitIds,
-    unitIds,
-    imagesToPreloadCount: imagesToPreload.length,
-    unitsCount: gameState.units.length
-  });
 
   return (
     <div style={{ position: 'relative', width: LANE_WIDTH, height: LANE_HEIGHT }}>
