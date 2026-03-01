@@ -102,23 +102,37 @@ async def tick_match(request: MatchTickRequest):
     1. セッションからGameState取得
     2. process_tick()実行
     3. セッションに保存
-    4. 勝敗が決まった場合はDB更新
+    4. 勝敗が決まった場合はDB更新とセッション削除
+    5. 古い試合を定期的にクリーンアップ
     """
     session_manager = get_session_manager()
+
+    # 定期的に古い試合をクリーンアップ（30秒以上更新がない試合を削除）
+    # tickは頻繁に呼ばれるので、ここでクリーンアップを実行
+    import random
+    if random.random() < 0.01:  # 1%の確率で実行（約100tickに1回）
+        cleaned = session_manager.cleanup_inactive_matches(timeout_seconds=30)
+        if cleaned > 0:
+            print(f"[Cleanup] Removed {cleaned} inactive matches")
+
     game_state = session_manager.get_match(request.match_id)
 
     if not game_state:
+        # マッチが見つからない場合（削除済みまたは存在しない）
         raise MatchNotFoundException(str(request.match_id))
 
     # tick処理
     events = process_tick(game_state)
 
-    # セッションに保存
-    session_manager.update_match(request.match_id, game_state)
-
-    # 勝敗が決まった場合はDB更新
+    # 勝敗が決まった場合はDB更新してセッションから削除
     if game_state.winner:
         await update_match_result(request.match_id, game_state.winner)
+        # セッションから削除してリソースを解放
+        session_manager.delete_match(request.match_id)
+        print(f"[Match] Match {request.match_id} finished with winner: {game_state.winner}. Session deleted.")
+    else:
+        # セッションに保存（継続中の場合のみ）
+        session_manager.update_match(request.match_id, game_state)
 
     return MatchTickResponse(
         game_state=game_state,
@@ -185,6 +199,32 @@ async def spawn_unit(request: MatchSpawnRequest):
         game_state=game_state,
         events=[spawn_event]
     )
+
+
+@router.post("/end")
+async def end_match(request: MatchTickRequest):
+    """
+    マッチを明示的に終了する
+
+    ユーザーが画面を閉じたときなど、途中でマッチを終了する場合に使用。
+    セッションからマッチを削除してリソースを解放する。
+    """
+    session_manager = get_session_manager()
+    try:
+        game_state = session_manager.get_match(request.match_id)
+
+        if game_state:
+            # 勝敗が決まっていない場合でも削除
+            session_manager.delete_match(request.match_id)
+            print(f"[Match] Match {request.match_id} ended by user. Session deleted.")
+            return {"message": "Match ended successfully", "match_id": str(request.match_id)}
+        else:
+            # 既に削除されている場合も成功として扱う
+            return {"message": "Match already ended", "match_id": str(request.match_id)}
+    except Exception as e:
+        print(f"[Match] Error ending match {request.match_id}: {e}")
+        # エラーでも成功として扱う（冪等性）
+        return {"message": "Match end processed", "match_id": str(request.match_id)}
 
 
 @router.post("/ai_decide", response_model=AIDecideResponse)

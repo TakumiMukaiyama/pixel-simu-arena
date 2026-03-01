@@ -5,7 +5,7 @@ import { StatsDisplay } from '../components/StatsDisplay';
 import { DeckSelector } from '../components/DeckSelector';
 import { AIThoughtDisplay } from '../components/AIThoughtDisplay';
 import { useError } from '../components/ErrorNotification';
-import { matchStart, matchTick, matchSpawn, matchAiDecide, galleryList, deckGet } from '../api';
+import { matchStart, matchTick, matchSpawn, matchAiDecide, matchEnd, galleryList, deckGet } from '../api';
 import { mapErrorToUserMessage } from '../api/errors';
 import type { GameState, UnitSpec } from '../types/game';
 import './GameScreen.css';
@@ -26,6 +26,7 @@ export const GameScreen: React.FC = () => {
   const [aiThoughts, setAiThoughts] = useState<AIThought[]>([]);
   const intervalRef = useRef<number | null>(null);
   const aiDecisionTimerRef = useRef<number>(0);
+  const matchIdRef = useRef<string | null>(null);
   const { showError } = useError();
 
   // デバッグツールをwindowに追加
@@ -151,6 +152,24 @@ export const GameScreen: React.FC = () => {
       }
     };
   }, [matchId, gameState?.winner]);
+
+  // matchIdをrefに保存（最新の値を保持）
+  useEffect(() => {
+    matchIdRef.current = matchId;
+  }, [matchId]);
+
+  // コンポーネントのアンマウント時にマッチを終了（別のuseEffect）
+  useEffect(() => {
+    return () => {
+      // コンポーネントがアンマウントされる時のみ実行
+      // refから最新のmatchIdを取得
+      if (matchIdRef.current) {
+        matchEnd(matchIdRef.current).catch(err => {
+          console.warn('Failed to end match on unmount:', err);
+        });
+      }
+    };
+  }, []); // 空の依存配列 = マウント時に1回だけ設定、アンマウント時にクリーンアップ
 
   // ユニット召喚（デバウンス付き）
   const handleSpawn = async (unitSpecId: string) => {

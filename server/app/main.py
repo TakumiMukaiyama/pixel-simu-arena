@@ -5,12 +5,33 @@ FastAPIアプリケーション
 """
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import get_settings
 from app.storage.db import close_db_pool, create_db_pool, init_database
+
+
+class CORSStaticFilesMiddleware(BaseHTTPMiddleware):
+    """静的ファイルにもCORSヘッダーを追加するミドルウェア"""
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+
+        # 静的ファイルのリクエストにCORSヘッダーを追加
+        if request.url.path.startswith("/static"):
+            settings = get_settings()
+            allowed_origins = settings.cors_origins.split(",") if settings.cors_origins else ["*"]
+            origin = request.headers.get("origin")
+
+            if origin in allowed_origins or "*" in allowed_origins:
+                response.headers["Access-Control-Allow-Origin"] = origin or "*"
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+                response.headers["Access-Control-Allow-Methods"] = "*"
+                response.headers["Access-Control-Allow-Headers"] = "*"
+
+        return response
 
 
 @asynccontextmanager
@@ -53,6 +74,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 静的ファイル用のCORSミドルウェア
+app.add_middleware(CORSStaticFilesMiddleware)
 
 # 静的ファイル配信
 app.mount("/static", StaticFiles(directory="static"), name="static")

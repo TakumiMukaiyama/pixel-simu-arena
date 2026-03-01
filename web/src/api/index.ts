@@ -7,6 +7,7 @@ export {
   matchTick,
   matchSpawn,
   matchAiDecide,
+  matchEnd,
   unitsCreate,
   unitsDelete,
   galleryList,
