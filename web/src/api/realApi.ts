@@ -3,7 +3,7 @@
  */
 
 import { get, post, put, del } from './client';
-import type { GameState, Event, UnitSpec, Deck } from '../types/game';
+import type { GameState, Event, UnitSpec, Deck, AIDecideResponse } from '../types/game';
 
 /**
  * 対戦開始
@@ -47,7 +47,7 @@ export const matchSpawn = async (
  */
 export const matchAiDecide = async (
   matchId: string
-): Promise<{ game_state: GameState; events: Event[] }> => {
+): Promise<AIDecideResponse> => {
   return post('/match/ai_decide', { match_id: matchId });
 };
 
