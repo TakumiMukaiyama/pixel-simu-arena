@@ -5,14 +5,14 @@ Mistral LLMを使用してプロンプトからユニットを生成する。
 """
 import json
 from typing import Dict
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from mistralai import Mistral
 
 from app.config import get_settings
 from app.engine.balance import adjust_stats_to_cost, calculate_cost, calculate_power_score
 from app.schemas.unit import UnitSpec
-from app.storage.db import save_unit_spec
+from app.storage.db import save_unit_spec, update_unit_images
 
 settings = get_settings()
 
@@ -76,19 +76,12 @@ async def generate_unit_from_prompt(prompt: str) -> UnitSpec:
 
     unit_data["cost"] = cost
 
-    # 3. 画像生成
+    # 3. 画像URLはプレースホルダーで初期化（バックグラウンドで生成）
     unit_id = uuid4()
-
-    # 画像生成を試みる（失敗時はプレースホルダー）
-    try:
-        from app.llm.image_gen import generate_unit_images
-        sprite_url, card_url = generate_unit_images(unit_id, unit_data, prompt)
-        image_prompt = f"sprite: {_create_sprite_prompt_text(unit_data)}, card: {_create_card_prompt_text(unit_data)}"
-    except Exception as e:
-        print(f"Image generation failed, using placeholders: {e}")
-        sprite_url = "/static/sprites/placeholder.png"
-        card_url = "/static/cards/placeholder.png"
-        image_prompt = None
+    sprite_url = "/static/sprites/placeholder.png"
+    battle_sprite_url = "/static/battle_sprites/placeholder.png"
+    card_url = "/static/cards/placeholder.png"
+    image_prompt = None
 
     # 4. UnitSpec作成
     unit_spec = UnitSpec(
@@ -101,6 +94,7 @@ async def generate_unit_from_prompt(prompt: str) -> UnitSpec:
         range=unit_data["range"],
         atk_interval=unit_data["atk_interval"],
         sprite_url=sprite_url,
+        battle_sprite_url=battle_sprite_url,
         card_url=card_url,
         image_prompt=image_prompt,
         original_prompt=prompt
@@ -250,3 +244,47 @@ def _fallback_unit(prompt: str) -> Dict:
         unit_data["max_hp"] = 12
 
     return unit_data
+
+
+async def generate_images_background(unit_id: UUID, unit_data: Dict, prompt: str):
+    """
+    バックグラウンドでユニット画像を生成してDBを更新
+
+    Args:
+        unit_id: ユニットID
+        unit_data: ユニット統計データ
+        prompt: 元のプロンプト
+    """
+    import asyncio
+
+    async def _generate_with_timeout():
+        try:
+            from app.llm.image_gen import generate_unit_images
+
+            print(f"[Background] Starting image generation for unit {unit_id}")
+
+            # 同期関数を別スレッドで実行（600秒タイムアウト）
+            loop = asyncio.get_event_loop()
+            sprite_url, battle_sprite_url, card_url = await asyncio.wait_for(
+                loop.run_in_executor(
+                    None,
+                    generate_unit_images,
+                    unit_id,
+                    unit_data,
+                    prompt
+                ),
+                timeout=600.0
+            )
+
+            # DB更新
+            await update_unit_images(unit_id, sprite_url, battle_sprite_url, card_url)
+
+            print(f"[Background] Image generation completed for unit {unit_id}")
+        except asyncio.TimeoutError:
+            print(f"[Background] Image generation timed out (600s) for unit {unit_id}")
+        except Exception as e:
+            print(f"[Background] Image generation failed for unit {unit_id}: {e}")
+            import traceback
+            traceback.print_exc()
+
+    await _generate_with_timeout()

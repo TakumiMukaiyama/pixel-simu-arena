@@ -1,69 +1,58 @@
 """
 画像生成
 
-Mistral Image APIを使用してユニットのスプライトとカード絵を生成する。
+PixelLab APIを使用してユニットのスプライトとカード絵を生成する。
 """
 import base64
-import os
-from typing import Optional, Tuple
+from pathlib import Path
+from typing import Tuple
 from uuid import UUID
 
-from mistralai import Mistral
+from PIL import Image, ImageDraw
+from pixellab import Client as PixelLabClient
 
 from app.config import get_settings
 
 settings = get_settings()
 
+# スプライト用パラメータ (32x32, 透明背景) - ギャラリー表示用
+SPRITE_PARAMS = {
+    "image_size": {"width": 32, "height": 32},
+    "no_background": True,
+    "view": "side",
+    "direction": "east",
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "low detail",
+    "text_guidance_scale": 8.0,
+}
 
-def generate_unit_images(
-    unit_id: UUID,
-    unit_data: dict,
-    original_prompt: str
-) -> Tuple[str, str]:
-    """
-    ユニットの画像を生成
+# バトルスプライト用パラメータ (128x128, 透明背景) - バトル表示用
+BATTLE_SPRITE_PARAMS = {
+    "image_size": {"width": 128, "height": 128},
+    "no_background": True,
+    "view": "low top-down",
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "text_guidance_scale": 8.0,
+}
 
-    1. 画像プロンプト自動生成
-    2. Mistral Image API呼び出し（32x32スプライト + 256x256カード絵）
-    3. ダウンロードして保存
-    4. URL生成
+# カード絵用パラメータ (256x256)
+CARD_PARAMS = {
+    "image_size": {"width": 256, "height": 256},
+    "no_background": False,
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "text_guidance_scale": 9.0,
+}
 
-    Args:
-        unit_id: ユニットID
-        unit_data: ユニットステータス辞書
-        original_prompt: 元のプロンプト
 
-    Returns:
-        (sprite_url, card_url) のタプル
-    """
-    # 1. 画像プロンプト生成
-    sprite_prompt = _create_sprite_prompt(unit_data, original_prompt)
-    card_prompt = _create_card_prompt(unit_data, original_prompt)
-
-    # 2. 画像生成（エラー時はプレースホルダー）
-    try:
-        sprite_path = _generate_and_save_image(
-            prompt=sprite_prompt,
-            output_path=f"static/sprites/{unit_id}.png",
-            description="32x32 pixel art sprite, side view"
-        )
-        sprite_url = f"/static/sprites/{unit_id}.png"
-    except Exception as e:
-        print(f"Sprite generation failed: {e}")
-        sprite_url = "/static/sprites/placeholder.png"
-
-    try:
-        card_path = _generate_and_save_image(
-            prompt=card_prompt,
-            output_path=f"static/cards/{unit_id}.png",
-            description="256x256 detailed pixel art portrait"
-        )
-        card_url = f"/static/cards/{unit_id}.png"
-    except Exception as e:
-        print(f"Card generation failed: {e}")
-        card_url = "/static/cards/placeholder.png"
-
-    return sprite_url, card_url
+def _get_pixellab_client() -> PixelLabClient:
+    """PixelLabクライアントのシングルトンを取得"""
+    return PixelLabClient(secret=settings.pixellab_api_key)
 
 
 def _create_sprite_prompt(unit_data: dict, original_prompt: str) -> str:
@@ -97,6 +86,43 @@ def _create_sprite_prompt(unit_data: dict, original_prompt: str) -> str:
     if modifier_str:
         prompt += f", {modifier_str}"
     prompt += f", simple design, game sprite, clear silhouette"
+
+    return prompt
+
+
+def _create_battle_sprite_prompt(unit_data: dict, original_prompt: str) -> str:
+    """
+    バトルスプライト用の画像プロンプトを生成（128x128、コマ風）
+
+    Args:
+        unit_data: ユニットステータス
+        original_prompt: ユーザーの元プロンプト
+
+    Returns:
+        画像生成プロンプト
+    """
+    name = unit_data.get("name", "unit")
+    speed = unit_data.get("speed", 1.0)
+    hp = unit_data.get("max_hp", 10)
+
+    # 特徴的な修飾語を追加
+    modifiers = []
+    if speed >= 1.5:
+        modifiers.append("fast")
+    elif speed <= 0.5:
+        modifiers.append("slow")
+
+    if hp >= 20:
+        modifiers.append("armored")
+    elif hp <= 10:
+        modifiers.append("agile")
+
+    modifier_str = ", ".join(modifiers) if modifiers else ""
+
+    prompt = f"pixel art, 128x128, low angle top-down view, {name}"
+    if modifier_str:
+        prompt += f", {modifier_str}"
+    prompt += f", game token, board game piece, clear design, fantasy style"
 
     return prompt
 
@@ -141,89 +167,126 @@ def _create_card_prompt(unit_data: dict, original_prompt: str) -> str:
 def _generate_and_save_image(
     prompt: str,
     output_path: str,
-    description: str,
+    params: dict,
     max_retries: int = 2
 ) -> str:
     """
-    Mistral Image APIで画像を生成して保存
+    PixelLab APIで画像を生成してファイルに保存
 
     Args:
         prompt: 画像生成プロンプト
         output_path: 保存先パス
-        description: 画像の説明（サイズなど）
+        params: PixelLabパラメータ（サイズ、スタイルなど）
         max_retries: 最大リトライ回数
 
     Returns:
         保存したファイルパス
 
     Raises:
-        Exception: 生成失敗時
+        Exception: 全リトライ失敗時
     """
-    from mistralai.models import ToolFileChunk
+    client = _get_pixellab_client()
 
-    client = Mistral(api_key=settings.mistral_api_key)
+    # ディレクトリ作成
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
     for attempt in range(max_retries):
         try:
-            # 1. エージェント作成（image_generation tool使用）
-            agent = client.beta.agents.create(
-                model="mistral-medium-2505",
-                name="Image Generator",
-                tools=[{"type": "image_generation"}]
+            # PixelLab API呼び出し
+            result = client.generate_image_pixflux(
+                description=prompt,
+                image_size=params["image_size"],
+                no_background=params["no_background"],
+                view=params["view"],
+                direction=params.get("direction"),
+                outline=params["outline"],
+                shading=params["shading"],
+                detail=params["detail"],
+                text_guidance_scale=params["text_guidance_scale"],
             )
 
-            # 2. エージェント実行（画像生成）
-            full_prompt = f"{description}. {prompt}"
-            response = client.beta.conversations.start(
-                agent_id=agent.id,
-                inputs=full_prompt
-            )
+            # Base64デコード
+            # PixelLabのレスポンス構造: result.image.base64
+            if not hasattr(result, 'image') or not hasattr(result.image, 'base64'):
+                raise Exception("レスポンスにimage.base64データがありません")
 
-            # 3. file_idを探す（response.outputs[-1].content から）
-            file_id = None
-            if response.outputs and len(response.outputs) > 0:
-                last_output = response.outputs[-1]
-                if hasattr(last_output, 'content'):
-                    for chunk in last_output.content:
-                        if isinstance(chunk, ToolFileChunk):
-                            file_id = chunk.file_id
-                            break
+            base64_data = result.image.base64
 
-            if not file_id:
-                raise Exception("No file_id in response")
+            # data:image/png;base64,プレフィックスを削除
+            if base64_data.startswith("data:image/png;base64,"):
+                base64_data = base64_data.split(",", 1)[1]
 
-            # 4. ファイルダウンロード
-            file_bytes = client.files.download(file_id=file_id).read()
-
-            # 5. 保存
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            # ファイル保存
+            image_data = base64.b64decode(base64_data)
             with open(output_path, "wb") as f:
-                f.write(file_bytes)
+                f.write(image_data)
 
-            print(f"Image saved: {output_path}")
+            print(f"[PixelLab] 画像生成成功: {output_path}")
             return output_path
 
         except Exception as e:
-            print(f"Image generation attempt {attempt + 1}/{max_retries} failed: {e}")
+            print(f"[PixelLab] 試行 {attempt + 1}/{max_retries} 失敗: {e}")
             if attempt == max_retries - 1:
                 raise
 
-    raise Exception("Image generation failed after all retries")
+    raise Exception("PixelLab API: 全リトライ失敗")
 
 
-def _save_base64_image(base64_str: str, output_path: str) -> None:
+def _create_placeholder_image(output_path: str, size: int):
     """
-    Base64文字列をデコードして画像として保存
+    エラー時のプレースホルダー画像を生成
 
     Args:
-        base64_str: Base64エンコードされた画像データ
         output_path: 保存先パス
+        size: 画像サイズ（正方形）
     """
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    img = Image.new('RGBA', (size, size), (200, 200, 200, 255))
+    draw = ImageDraw.Draw(img)
 
-    # Base64デコード
-    image_data = base64.b64decode(base64_str)
+    # 簡単な図形を描画
+    draw.ellipse([size//4, size//4, size*3//4, size*3//4], fill=(150, 150, 150, 255))
 
-    # ファイル保存
-    with open(output_path, "wb") as f:
-        f.write(image_data)
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    img.save(output_path)
+
+
+def generate_unit_images(
+    unit_id: UUID,
+    unit_data: dict,
+    original_prompt: str
+) -> Tuple[str, str, str]:
+    """
+    ユニット画像を生成（バトルスプライトのみ）
+
+    Args:
+        unit_id: ユニットUUID
+        unit_data: ユニット統計辞書
+        original_prompt: ユーザーの元プロンプト
+
+    Returns:
+        (sprite_url, battle_sprite_url, card_url)のタプル
+        ※全て同じURLを返す（後方互換性のため）
+    """
+    # 1. プロンプト生成
+    battle_sprite_prompt = _create_battle_sprite_prompt(unit_data, original_prompt)
+
+    # 2. バトルスプライト生成（128x128、透明背景、コマ風）
+    try:
+        battle_sprite_path = f"static/battle_sprites/{unit_id}.png"
+        _generate_and_save_image(
+            prompt=battle_sprite_prompt,
+            output_path=battle_sprite_path,
+            params=BATTLE_SPRITE_PARAMS
+        )
+        battle_sprite_url = f"/static/battle_sprites/{unit_id}.png"
+        print(f"[PixelLab] バトルスプライト生成成功: {battle_sprite_path}")
+    except Exception as e:
+        print(f"[PixelLab] バトルスプライト生成失敗: {e}")
+        _create_placeholder_image(f"static/battle_sprites/{unit_id}.png", size=128)
+        battle_sprite_url = f"/static/battle_sprites/{unit_id}.png"
+
+    # sprite_url と card_url も同じ画像を使用（後方互換性）
+    sprite_url = battle_sprite_url
+    card_url = battle_sprite_url
+
+    return sprite_url, battle_sprite_url, card_url

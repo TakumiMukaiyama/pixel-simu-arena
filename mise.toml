@@ -51,13 +51,6 @@ uv sync
 dir = "server"
 run = "uv run alembic upgrade head"
 
-[tasks.migrate-mock]
-dir = "server"
-run = """
-uv run alembic upgrade head
-uv run python scripts/seed_mock_data.py
-"""
-
 [tasks.migrate-create]
 dir = "server"
 run = "uv run alembic revision --autogenerate -m"
@@ -95,7 +88,3 @@ run = "docker compose logs -f server"
 [tasks.docker-db-shell]
 dir = "server"
 run = "docker compose exec postgres psql -U pixelsimu -d pixel_simu_arena"
-
-[tasks.seed-local]
-dir = "server"
-run = "uv run python scripts/seed_mock_data.py"

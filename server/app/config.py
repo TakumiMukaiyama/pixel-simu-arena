@@ -12,6 +12,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """アプリケーション設定"""
 
+    # PixelLab API
+    pixellab_api_key: str
+
     # Mistral API
     mistral_api_key: str
 

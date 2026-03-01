@@ -148,6 +148,26 @@ class DeckSaveResponse(BaseModel):
     deck_id: UUID = Field(..., description="保存されたデッキID")
 
 
+class DeckUpdateRequest(BaseModel):
+    """デッキ更新リクエスト"""
+    name: str = Field(..., min_length=1, max_length=100, description="デッキ名")
+    unit_spec_ids: List[UUID] = Field(..., min_length=5, max_length=5, description="ユニットID配列（5枚）")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "Updated Deck",
+                "unit_spec_ids": [
+                    "550e8400-e29b-41d4-a716-446655440000",
+                    "660e9511-f30c-52e5-b827-557766551111",
+                    "770ea622-0401-63f6-c938-668877662222",
+                    "880eb733-1512-74g7-d049-779988773333",
+                    "990ec844-2623-85h8-e15a-880099884444"
+                ]
+            }
+        }
+
+
 class DeckGetResponse(BaseModel):
     """デッキ取得レスポンス"""
     deck: "Deck" = Field(..., description="デッキ情報")

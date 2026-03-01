@@ -52,9 +52,20 @@ def process_tick(game_state: GameState) -> List[Event]:
     for unit in game_state.units:
         update_cooldown(unit, tick_duration_sec)
 
-    # 2. 移動処理
-    for unit in game_state.units:
-        move_event = move_unit(unit, tick_duration_sec)
+    # 2. 移動処理 (射程内に敵がいない場合のみ移動)
+    player_units = game_state.get_player_units()
+    ai_units = game_state.get_ai_units()
+
+    # プレイヤーユニットの移動
+    for unit in player_units:
+        move_event = move_unit(unit, ai_units, tick_duration_sec)
+        if move_event:
+            move_event.timestamp_ms = game_state.time_ms
+            events.append(move_event)
+
+    # AIユニットの移動
+    for unit in ai_units:
+        move_event = move_unit(unit, player_units, tick_duration_sec)
         if move_event:
             move_event.timestamp_ms = game_state.time_ms
             events.append(move_event)
@@ -70,7 +81,7 @@ def process_tick(game_state: GameState) -> List[Event]:
     # 拠点到達ユニットを除去
     game_state.units = [u for u in game_state.units if u.instance_id not in units_to_remove]
 
-    # 4. 攻撃処理
+    # 4. 攻撃処理 (移動処理後にユニットリストを再取得)
     player_units = game_state.get_player_units()
     ai_units = game_state.get_ai_units()
 

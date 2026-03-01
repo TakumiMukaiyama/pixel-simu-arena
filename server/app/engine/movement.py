@@ -48,17 +48,26 @@ def find_nearest_enemy(
     return nearest
 
 
-def move_unit(unit: UnitInstance, tick_duration_sec: float) -> Optional[Event]:
+def move_unit(
+    unit: UnitInstance,
+    enemies: List[UnitInstance],
+    tick_duration_sec: float
+) -> Optional[Event]:
     """
-    ユニットを移動させる
+    ユニットを移動させる（射程内に敵がいる場合は停止）
 
     Args:
         unit: 移動するユニット
+        enemies: 敵ユニットリスト
         tick_duration_sec: tick期間（秒）
 
     Returns:
         移動イベント（移動した場合）
     """
+    # 射程内に敵がいる場合は移動しない
+    if find_nearest_enemy(unit, enemies) is not None:
+        return None
+
     old_pos = unit.pos
 
     # プレイヤーユニットは右へ（pos増加）、AIユニットは左へ（pos減少）

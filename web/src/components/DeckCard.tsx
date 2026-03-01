@@ -1,3 +1,4 @@
+import env from '../config/env';
 import type { UnitSpec } from '../types/game';
 import './DeckCard.css';
 
@@ -17,11 +18,14 @@ export const DeckCard: React.FC<DeckCardProps> = ({ unit, currentCost, onSpawn }
       title={canSpawn ? `クリックして ${unit.name} を召喚` : 'コストが不足しています'}
     >
       <div className="card-image">
-        {/* 幾何学形でユニットを表現 */}
-        <div
-          className="unit-shape"
+        <img
+          src={`${env.apiBaseUrl}${unit.battle_sprite_url}`}
+          alt={unit.name}
           style={{
-            backgroundColor: '#00ff00',
+            width: '64px',
+            height: '64px',
+            imageRendering: 'pixelated',
+            objectFit: 'contain',
             opacity: canSpawn ? 1 : 0.4,
           }}
         />

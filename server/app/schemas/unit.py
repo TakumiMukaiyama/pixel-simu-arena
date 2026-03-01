@@ -30,7 +30,8 @@ class UnitSpec(BaseModel):
     atk_interval: float = Field(..., ge=1.0, le=5.0, description="攻撃間隔（秒）")
 
     # 画像URL
-    sprite_url: str = Field(..., description="32x32スプライトのURL")
+    sprite_url: str = Field(..., description="32x32スプライトのURL（ギャラリー用）")
+    battle_sprite_url: str = Field(..., description="128x128バトルスプライトのURL（バトル表示用）")
     card_url: str = Field(..., description="256x256カード絵のURL")
 
     # メタデータ
@@ -80,11 +81,13 @@ class UnitInstance(BaseModel):
     cooldown: float = Field(default=0.0, ge=0, description="攻撃クールダウン（秒）")
 
     # 元のスペック（計算用にコピー）
+    name: str = Field(..., description="ユニット名（表示用）")
     max_hp: int = Field(..., ge=5, le=30)
     atk: int = Field(..., ge=1, le=15)
     speed: float = Field(..., ge=0.2, le=2.0)
     range: float = Field(..., ge=1.0, le=7.0)
     atk_interval: float = Field(..., ge=1.0, le=5.0)
+    battle_sprite_url: str = Field(..., description="128x128バトルスプライトのURL")
 
     @field_validator('pos')
     @classmethod
@@ -106,11 +109,13 @@ class UnitInstance(BaseModel):
             pos=initial_pos,
             hp=spec.max_hp,
             cooldown=0.0,
+            name=spec.name,
             max_hp=spec.max_hp,
             atk=spec.atk,
             speed=spec.speed,
             range=spec.range,
-            atk_interval=spec.atk_interval
+            atk_interval=spec.atk_interval,
+            battle_sprite_url=spec.battle_sprite_url
         )
 
     class Config:

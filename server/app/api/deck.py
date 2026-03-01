@@ -7,9 +7,9 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.api import DeckGetResponse, DeckSaveRequest, DeckSaveResponse
+from app.schemas.api import DeckGetResponse, DeckSaveRequest, DeckSaveResponse, DeckUpdateRequest
 from app.schemas.deck import Deck
-from app.storage.db import get_deck, get_units_by_ids, save_deck
+from app.storage.db import get_deck, get_units_by_ids, save_deck, list_decks, delete_deck, update_deck
 
 router = APIRouter()
 
@@ -44,6 +44,17 @@ async def save_deck_endpoint(request: DeckSaveRequest):
     return DeckSaveResponse(deck_id=deck.id)
 
 
+@router.get("/list")
+async def list_decks_endpoint(limit: int = 100, offset: int = 0):
+    """
+    デッキ一覧を取得
+
+    ページネーション付きでデッキ一覧を返す。
+    """
+    decks = await list_decks(limit=limit, offset=offset)
+    return {"decks": decks}
+
+
 @router.get("/{deck_id}", response_model=DeckGetResponse)
 async def get_deck_endpoint(deck_id: UUID):
     """
@@ -62,3 +73,45 @@ async def get_deck_endpoint(deck_id: UUID):
         deck=deck,
         units=units
     )
+
+
+@router.put("/{deck_id}")
+async def update_deck_endpoint(deck_id: UUID, request: DeckUpdateRequest):
+    """
+    デッキを更新
+
+    デッキ名とユニット構成を更新する。
+    """
+    # デッキ存在確認
+    deck = await get_deck(deck_id)
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+
+    # 全ユニットの存在確認
+    units = await get_units_by_ids(request.unit_spec_ids)
+    if len(units) != 5:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Some units not found. Expected 5, got {len(units)}"
+        )
+
+    # デッキ更新
+    await update_deck(deck_id, request.name, request.unit_spec_ids)
+
+    return {"message": "Deck updated successfully", "deck_id": str(deck_id)}
+
+
+@router.delete("/{deck_id}")
+async def delete_deck_endpoint(deck_id: UUID):
+    """
+    デッキを削除
+    """
+    deck = await get_deck(deck_id)
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+
+    deleted = await delete_deck(deck_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Deck not found")
+
+    return {"message": "Deck deleted successfully", "deck_id": str(deck_id)}

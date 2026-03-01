@@ -64,15 +64,21 @@ npm run preview
 - デッキ保存機能
 - ドラッグ不要のシンプルUI
 
-## モックAPI
+## API統合
 
-バックエンドは未実装のため、`src/api/mockApi.ts` がダミーデータを返します。
+バックエンドAPIと完全統合済み。`src/api/realApi.ts` を使用します。
 
-- `matchStart()`: 対戦開始
-- `matchTick()`: ゲーム状態更新（200msごと）
-- `matchSpawn()`: ユニット召喚
-- `galleryList()`: ユニット一覧取得
-- `deckSave()`: デッキ保存
+- `matchStart(playerDeckId, aiDeckId?)`: 対戦開始
+- `matchTick(matchId)`: ゲーム状態更新（200msごと）
+- `matchSpawn(matchId, side, unitSpecId)`: ユニット召喚
+- `matchAiDecide(matchId)`: AI判断（自律動作）
+- `unitsCreate(prompt)`: ユニット作成
+- `galleryList(limit?, offset?)`: ユニット一覧取得
+- `deckSave(name, unitSpecIds)`: デッキ保存
+- `deckList()`: デッキ一覧
+- `deckGet(deckId)`: デッキ取得
+
+**注意**: バックエンドAPI（ポート8000）が必須です。
 
 ## ファイル構成
 
@@ -81,9 +87,15 @@ web/
 ├── src/
 │   ├── types/          # 型定義
 │   │   └── game.ts
-│   ├── api/            # モックAPI
-│   │   ├── mockApi.ts
-│   │   └── mockData.ts
+│   ├── api/            # APIクライアント
+│   │   ├── client.ts     # HTTPクライアント基盤
+│   │   ├── errors.ts     # エラーハンドリング
+│   │   ├── realApi.ts    # バックエンドAPI実装
+│   │   └── index.ts      # APIエクスポート
+│   ├── config/         # 環境設定
+│   │   └── env.ts
+│   ├── hooks/          # カスタムフック
+│   │   └── useApi.ts
 │   ├── game/           # PixiJSゲーム描画
 │   │   └── GameScene.tsx
 │   ├── screens/        # 画面コンポーネント

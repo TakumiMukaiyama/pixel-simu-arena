@@ -717,6 +717,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "mistralai" },
     { name = "pillow" },
+    { name = "pixellab" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -748,6 +749,7 @@ requires-dist = [
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.24.0" },
     { name = "mistralai", specifier = ">=1.0.0" },
     { name = "pillow", specifier = ">=10.0.0" },
+    { name = "pixellab", specifier = ">=1.0.5" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
@@ -763,6 +765,20 @@ provides-extras = ["dev"]
 dev = [
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-asyncio", specifier = ">=1.3.0" },
+]
+
+[[package]]
+name = "pixellab"
+version = "1.0.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pillow" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "requests" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/53/50/ac5cb434b6019cdb926382a4cf4467c306afa6b14a37ef85f2d70f066ac8/pixellab-1.0.5-py3-none-any.whl", hash = "sha256:e4eeda8bd2ea46f57583cecd9c4dea4afdcd1256fd1cbaea1b326b01d3bc68df", size = 15840, upload-time = "2025-05-07T21:28:16.722Z" },
 ]
 
 [[package]]

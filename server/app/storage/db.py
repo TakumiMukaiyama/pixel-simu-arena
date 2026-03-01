@@ -65,6 +65,7 @@ async def init_database() -> None:
                 range REAL NOT NULL CHECK (range >= 1.0 AND range <= 7.0),
                 atk_interval REAL NOT NULL CHECK (atk_interval >= 1.0 AND atk_interval <= 5.0),
                 sprite_url VARCHAR(255) NOT NULL,
+                battle_sprite_url VARCHAR(255) NOT NULL DEFAULT '/static/battle_sprites/placeholder.png',
                 card_url VARCHAR(255) NOT NULL,
                 image_prompt TEXT,
                 original_prompt TEXT,
@@ -74,6 +75,16 @@ async def init_database() -> None:
         await conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_units_created_at ON units(created_at DESC)
         """)
+
+        # battle_sprite_urlカラムを追加（既存テーブル用）
+        try:
+            await conn.execute("""
+                ALTER TABLE units
+                ADD COLUMN IF NOT EXISTS battle_sprite_url VARCHAR(255)
+                NOT NULL DEFAULT '/static/battle_sprites/placeholder.png'
+            """)
+        except Exception:
+            pass  # カラムが既に存在する場合はスキップ
 
         # decksテーブル
         await conn.execute("""
@@ -114,8 +125,8 @@ async def save_unit_spec(unit_spec: UnitSpec) -> None:
             """
             INSERT INTO units (
                 id, name, cost, max_hp, atk, speed, range, atk_interval,
-                sprite_url, card_url, image_prompt, original_prompt, created_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                sprite_url, battle_sprite_url, card_url, image_prompt, original_prompt, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             """,
             str(unit_spec.id),
             unit_spec.name,
@@ -126,6 +137,7 @@ async def save_unit_spec(unit_spec: UnitSpec) -> None:
             unit_spec.range,
             unit_spec.atk_interval,
             unit_spec.sprite_url,
+            unit_spec.battle_sprite_url,
             unit_spec.card_url,
             unit_spec.image_prompt,
             unit_spec.original_prompt,
@@ -174,6 +186,44 @@ async def get_units_by_ids(unit_ids: List[UUID]) -> List[UnitSpec]:
             [str(uid) for uid in unit_ids]
         )
         return [UnitSpec(**dict(row)) for row in rows]
+
+
+async def update_unit_images(unit_id: UUID, sprite_url: str, battle_sprite_url: str, card_url: str) -> None:
+    """ユニットの画像URLを更新"""
+    pool = get_db_pool()
+    async with pool.acquire() as conn:
+        result = await conn.execute(
+            """
+            UPDATE units
+            SET sprite_url = $2, battle_sprite_url = $3, card_url = $4
+            WHERE id = $1
+            """,
+            str(unit_id),
+            sprite_url,
+            battle_sprite_url,
+            card_url
+        )
+        print(f"[DB] Updated images for unit {unit_id}: sprite={sprite_url}, battle_sprite={battle_sprite_url}, card={card_url}, result={result}")
+
+
+async def delete_unit_spec(unit_id: UUID) -> bool:
+    """
+    ユニットを削除
+
+    Args:
+        unit_id: 削除するユニットID
+
+    Returns:
+        削除成功時True、ユニットが存在しない場合False
+    """
+    pool = get_db_pool()
+    async with pool.acquire() as conn:
+        result = await conn.execute(
+            "DELETE FROM units WHERE id = $1",
+            str(unit_id)
+        )
+        # DELETEコマンドは "DELETE n" という形式を返す
+        return result.split()[-1] != "0"
 
 
 # ========== Decks CRUD ==========
@@ -236,6 +286,42 @@ async def list_decks(limit: int = 20, offset: int = 0) -> List[Deck]:
                 created_at=row["created_at"]
             ))
         return decks
+
+
+async def update_deck(deck_id: UUID, name: str, unit_spec_ids: List[UUID]) -> None:
+    """デッキを更新"""
+    pool = get_db_pool()
+    async with pool.acquire() as conn:
+        await conn.execute(
+            """
+            UPDATE decks
+            SET name = $2, unit_spec_ids = $3
+            WHERE id = $1
+            """,
+            str(deck_id),
+            name,
+            json.dumps([str(uid) for uid in unit_spec_ids])
+        )
+
+
+async def delete_deck(deck_id: UUID) -> bool:
+    """
+    デッキを削除
+
+    Args:
+        deck_id: 削除するデッキID
+
+    Returns:
+        削除成功時True、デッキが存在しない場合False
+    """
+    pool = get_db_pool()
+    async with pool.acquire() as conn:
+        result = await conn.execute(
+            "DELETE FROM decks WHERE id = $1",
+            str(deck_id)
+        )
+        # DELETEコマンドは "DELETE n" という形式を返す
+        return result.split()[-1] != "0"
 
 
 # ========== Matches CRUD ==========

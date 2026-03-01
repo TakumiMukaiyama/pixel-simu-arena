@@ -4,6 +4,7 @@ interface StatsDisplayProps {
   playerHp: number;
   aiHp: number;
   playerCost: number;
+  aiCost: number;
   timeMs: number;
 }
 
@@ -11,6 +12,7 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({
   playerHp,
   aiHp,
   playerCost,
+  aiCost,
   timeMs,
 }) => {
   const formatTime = (ms: number) => {
@@ -47,13 +49,23 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({
         </span>
       </div>
 
-      <div className="stat-item full-width">
-        <label>コスト</label>
+      <div className="stat-item">
+        <label>プレイヤー コスト</label>
         <div className="cost-bar">
-          <div className="cost-fill" style={{ width: `${(playerCost / 20) * 100}%` }} />
+          <div className="cost-fill player" style={{ width: `${(playerCost / 20) * 100}%` }} />
         </div>
         <span className="stat-text">
           {playerCost.toFixed(1)} / 20.0
+        </span>
+      </div>
+
+      <div className="stat-item">
+        <label>AI コスト</label>
+        <div className="cost-bar">
+          <div className="cost-fill ai" style={{ width: `${(aiCost / 20) * 100}%` }} />
+        </div>
+        <span className="stat-text">
+          {aiCost.toFixed(1)} / 20.0
         </span>
       </div>
     </div>

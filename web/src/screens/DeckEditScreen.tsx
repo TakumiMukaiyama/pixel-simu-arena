@@ -1,34 +1,55 @@
 import { useState, useEffect } from 'react';
-import { galleryList, deckSave } from '../api';
+import { useParams, useNavigate } from 'react-router-dom';
+import { galleryList, deckGet, deckUpdate } from '../api';
 import { useError } from '../components/ErrorNotification';
 import { mapErrorToUserMessage } from '../api/errors';
 import env from '../config/env';
-import type { UnitSpec } from '../types/game';
-import './DeckScreen.css';
+import type { UnitSpec, Deck } from '../types/game';
+import './DeckEditScreen.css';
 
-export const DeckScreen: React.FC = () => {
+export const DeckEditScreen: React.FC = () => {
+  const { deckId } = useParams<{ deckId: string }>();
   const [allUnits, setAllUnits] = useState<UnitSpec[]>([]);
   const [selectedUnits, setSelectedUnits] = useState<UnitSpec[]>([]);
-  const [deckName, setDeckName] = useState('My Deck');
+  const [deckName, setDeckName] = useState('');
   const [loading, setLoading] = useState(true);
   const [saveMessage, setSaveMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const { showError } = useError();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUnits = async () => {
+    const fetchData = async () => {
+      if (!deckId) {
+        showError('デッキIDが指定されていません');
+        navigate('/deck-list');
+        return;
+      }
+
       try {
-        const result = await galleryList();
-        setAllUnits(result.unit_specs);
+        setLoading(true);
+
+        // デッキ情報と全ユニットを並行取得
+        const [deckResult, galleryResult] = await Promise.all([
+          deckGet(deckId),
+          galleryList(),
+        ]);
+
+        setDeckName(deckResult.deck.name);
+        setAllUnits(galleryResult.unit_specs);
+
+        // 既存のデッキのユニットを選択状態にする
+        setSelectedUnits(deckResult.units);
       } catch (error) {
         showError(mapErrorToUserMessage(error));
+        navigate('/deck-list');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUnits();
-  }, []);
+    fetchData();
+  }, [deckId]);
 
   const handleSelectUnit = (unit: UnitSpec) => {
     if (selectedUnits.length >= 5) {
@@ -50,7 +71,12 @@ export const DeckScreen: React.FC = () => {
     setSelectedUnits(selectedUnits.filter((u) => u.id !== unitId));
   };
 
-  const handleSaveDeck = async () => {
+  const handleUpdateDeck = async () => {
+    if (!deckId) {
+      showError('デッキIDが指定されていません');
+      return;
+    }
+
     if (selectedUnits.length !== 5) {
       showError('デッキは5体必要です');
       return;
@@ -63,12 +89,15 @@ export const DeckScreen: React.FC = () => {
 
     setIsSaving(true);
     try {
-      const result = await deckSave(
+      await deckUpdate(
+        deckId,
         deckName,
         selectedUnits.map((u) => u.id)
       );
-      setSaveMessage(`デッキを保存しました: ${result.deck_id}`);
-      setTimeout(() => setSaveMessage(''), 3000);
+      setSaveMessage('デッキを更新しました');
+      setTimeout(() => {
+        navigate(`/deck-detail/${deckId}`);
+      }, 1000);
     } catch (error) {
       showError(mapErrorToUserMessage(error));
     } finally {
@@ -78,17 +107,32 @@ export const DeckScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="deck-screen loading">
+      <div className="deck-edit-screen loading">
         <div className="loading-spinner">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="deck-screen">
-      <div className="deck-header">
-        <h1>デッキ編成</h1>
-        <p className="deck-subtitle">5体のユニットを選択してデッキを作成</p>
+    <div className="deck-edit-screen">
+      <div className="deck-edit-header">
+        <button
+          onClick={() => navigate(`/deck-detail/${deckId}`)}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#64748b',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            marginBottom: '16px',
+          }}
+        >
+          ← キャンセル
+        </button>
+        <h1>デッキを編集</h1>
+        <p className="deck-edit-subtitle">5体のユニットを選択してデッキを更新</p>
       </div>
 
       {/* 選択中のデッキ */}
@@ -118,8 +162,8 @@ export const DeckScreen: React.FC = () => {
                         src={`${env.apiBaseUrl}${unit.battle_sprite_url}`}
                         alt={unit.name}
                         style={{
-                          width: '48px',
-                          height: '48px',
+                          width: '64px',
+                          height: '64px',
                           imageRendering: 'pixelated',
                           objectFit: 'contain',
                         }}
@@ -141,11 +185,11 @@ export const DeckScreen: React.FC = () => {
 
         <div className="deck-actions">
           <button
-            onClick={handleSaveDeck}
+            onClick={handleUpdateDeck}
             disabled={selectedUnits.length !== 5 || isSaving}
             className="save-button"
           >
-            {isSaving ? '保存中...' : 'デッキを保存'}
+            {isSaving ? '更新中...' : 'デッキを更新'}
           </button>
           {saveMessage && <div className="save-message">{saveMessage}</div>}
         </div>
@@ -168,8 +212,8 @@ export const DeckScreen: React.FC = () => {
                     src={`${env.apiBaseUrl}${unit.battle_sprite_url}`}
                     alt={unit.name}
                     style={{
-                      width: '48px',
-                      height: '48px',
+                      width: '64px',
+                      height: '64px',
                       imageRendering: 'pixelated',
                       objectFit: 'contain',
                       opacity: isSelected ? 0.5 : 1,

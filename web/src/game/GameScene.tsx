@@ -1,7 +1,6 @@
-import { useCallback } from 'react';
-import { Stage, Container, Graphics } from '@pixi/react';
+import { useCallback, useMemo } from 'react';
+import { Stage, Container, Graphics, Sprite, TilingSprite } from '@pixi/react';
 import type { GameState, UnitInstance } from '../types/game';
-import { mockUnits } from '../api/mockData';
 
 interface GameSceneProps {
   gameState: GameState;
@@ -15,24 +14,25 @@ const BASE_HEIGHT = 100;
 const UNIT_RADIUS = 15;
 
 export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
-  // レーン背景とグリッド線を描画
-  const drawLane = useCallback((g: any) => {
+  // 背景画像のURL
+  const backgroundUrl = useMemo(() => {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    return `${apiBaseUrl}/static/backgrounds/battle_field.png`;
+  }, []);
+
+  // グリッド線を描画
+  const drawGridLines = useCallback((g: any) => {
     g.clear();
 
-    // 背景
-    g.beginFill(0x2a2a2a);
-    g.drawRect(0, 0, LANE_WIDTH, LANE_HEIGHT);
-    g.endFill();
-
-    // グリッド線（縦）
-    g.lineStyle(1, 0x444444, 0.5);
+    // グリッド線（縦）- 控えめに
+    g.lineStyle(1, 0xffffff, 0.1);
     for (let i = 0; i <= 20; i++) {
       g.moveTo(i * GRID_SIZE, 0);
       g.lineTo(i * GRID_SIZE, LANE_HEIGHT);
     }
 
-    // 中央線を強調
-    g.lineStyle(2, 0x666666, 0.8);
+    // 中央線を強調 (戦場の境界)
+    g.lineStyle(2, 0xfbbf24, 0.4);
     g.moveTo(LANE_WIDTH / 2, 0);
     g.lineTo(LANE_WIDTH / 2, LANE_HEIGHT);
   }, []);
@@ -99,42 +99,29 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
     [gameState.ai_base_hp]
   );
 
-  // ユニットを描画
-  const drawUnit = useCallback(
+  // HPバーを描画
+  const drawUnitHPBar = useCallback(
     (unit: UnitInstance) => (g: any) => {
       g.clear();
 
-      const spec = mockUnits.find((u) => u.id === unit.spec_id);
-      if (!spec) return;
-
-      // ユニット本体（円）
-      const color = unit.side === 'player' ? 0x00ff00 : 0xff0000;
-      g.beginFill(color);
-      g.drawCircle(0, 0, UNIT_RADIUS);
-      g.endFill();
-
-      // 枠線
-      g.lineStyle(2, 0xffffff, 0.8);
-      g.drawCircle(0, 0, UNIT_RADIUS);
-
-      // HPバー
-      const barWidth = UNIT_RADIUS * 2;
-      const barHeight = 4;
-      const barY = -UNIT_RADIUS - 8;
+      // HPバー (バトルスプライト 64x64表示に合わせる)
+      const barWidth = 64;
+      const barHeight = 6;
+      const barY = -40; // スプライトの上部
 
       // HPバー背景
       g.beginFill(0x333333);
-      g.drawRect(-UNIT_RADIUS, barY, barWidth, barHeight);
+      g.drawRect(-barWidth / 2, barY, barWidth, barHeight);
       g.endFill();
 
       // HPバー（緑→黄→赤）
-      const hpPercent = unit.hp / spec.max_hp;
+      const hpPercent = unit.hp / unit.max_hp;
       let barColor = 0x00ff00; // 緑
       if (hpPercent < 0.5) barColor = 0xffff00; // 黄
       if (hpPercent < 0.25) barColor = 0xff0000; // 赤
 
       g.beginFill(barColor);
-      g.drawRect(-UNIT_RADIUS, barY, barWidth * hpPercent, barHeight);
+      g.drawRect(-barWidth / 2, barY, barWidth * hpPercent, barHeight);
       g.endFill();
     },
     []
@@ -142,8 +129,16 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
 
   return (
     <Stage width={LANE_WIDTH} height={LANE_HEIGHT} options={{ background: 0x000000 }}>
-      {/* レーン背景 */}
-      <Graphics draw={drawLane} />
+      {/* 背景画像 (タイル状に繰り返し) */}
+      <TilingSprite
+        image={backgroundUrl}
+        width={LANE_WIDTH}
+        height={LANE_HEIGHT}
+        tilePosition={{ x: 0, y: 0 }}
+      />
+
+      {/* グリッド線 */}
+      <Graphics draw={drawGridLines} />
 
       {/* プレイヤー拠点（左端 pos 0）*/}
       <Graphics x={0} y={0} draw={drawPlayerBase} />
@@ -155,9 +150,19 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
       {gameState.units.map((unit) => {
         const x = unit.pos * GRID_SIZE;
         const y = LANE_HEIGHT / 2;
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        const battleSpriteUrl = `${apiBaseUrl}${unit.battle_sprite_url}`;
+
         return (
           <Container key={unit.instance_id} x={x} y={y}>
-            <Graphics draw={drawUnit(unit)} />
+            {/* バトルスプライト画像 (128x128) - 64x64にスケールダウン */}
+            <Sprite
+              image={battleSpriteUrl}
+              anchor={0.5}
+              scale={0.5}
+            />
+            {/* HPバー */}
+            <Graphics draw={drawUnitHPBar(unit)} />
           </Container>
         );
       })}

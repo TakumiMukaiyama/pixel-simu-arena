@@ -2,67 +2,129 @@ import { useState, useEffect, useRef } from 'react';
 import { GameScene } from '../game/GameScene';
 import { DeckCard } from '../components/DeckCard';
 import { StatsDisplay } from '../components/StatsDisplay';
-import { matchStart, matchTick, matchSpawn, deckList } from '../api/mockApi';
-import { mockUnits } from '../api/mockData';
+import { DeckSelector } from '../components/DeckSelector';
+import { AIThoughtDisplay } from '../components/AIThoughtDisplay';
+import { useError } from '../components/ErrorNotification';
+import { matchStart, matchTick, matchSpawn, matchAiDecide, galleryList, deckGet } from '../api';
+import { mapErrorToUserMessage } from '../api/errors';
 import type { GameState, UnitSpec } from '../types/game';
 import './GameScreen.css';
+
+interface AIThought {
+  timestamp: number;
+  decision: 'spawn' | 'wait';
+  reason: string;
+  unitName?: string;
+}
 
 export const GameScreen: React.FC = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [matchId, setMatchId] = useState<string | null>(null);
   const [deckUnits, setDeckUnits] = useState<UnitSpec[]>([]);
+  const [showDeckSelector, setShowDeckSelector] = useState(true);
+  const [isSpawning, setIsSpawning] = useState(false);
+  const [aiThoughts, setAiThoughts] = useState<AIThought[]>([]);
   const intervalRef = useRef<number | null>(null);
+  const aiDecisionTimerRef = useRef<number>(0);
+  const { showError } = useError();
 
   // ゲーム開始
-  useEffect(() => {
-    const startGame = async () => {
-      try {
-        const result = await matchStart();
-        setMatchId(result.match_id);
-        setGameState(result.game_state);
+  const handleDeckSelect = async (deckId: string) => {
+    try {
+      setShowDeckSelector(false);
+      const result = await matchStart(deckId);
+      setMatchId(result.match_id);
+      setGameState(result.game_state);
 
-        // デッキを取得（最初のデッキを使用）
-        const decksResult = await deckList();
-        if (decksResult.decks.length > 0) {
-          const deck = decksResult.decks[0];
-          const units = deck.unit_spec_ids
-            .map((id) => mockUnits.find((u) => u.id === id))
-            .filter((u): u is UnitSpec => u !== undefined);
-          setDeckUnits(units);
-        }
-      } catch (error) {
-        console.error('Failed to start game:', error);
+      // デッキ情報を取得してユニット一覧を設定
+      if (deckGet) {
+        const deckResult = await deckGet(deckId);
+        setDeckUnits(deckResult.units);
+      } else {
+        // deckGetが利用できない場合のフォールバック
+        const galleryResult = await galleryList();
+        setDeckUnits(galleryResult.unit_specs.slice(0, 5));
       }
-    };
+    } catch (error) {
+      showError(mapErrorToUserMessage(error));
+      setShowDeckSelector(true);
+    }
+  };
 
-    startGame();
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
-
-  // 200msごとにtick
+  // 適応型ティックループ（AI自律動作含む）
   useEffect(() => {
     if (!matchId || !gameState || gameState.winner) return;
 
-    intervalRef.current = window.setInterval(async () => {
+    const runGameLoop = async () => {
       try {
+        const startTime = Date.now();
+
+        // Tick実行
         const result = await matchTick(matchId);
         setGameState(result.game_state);
 
-        // 勝敗が決まったらtickを停止
         if (result.game_state.winner) {
           if (intervalRef.current) {
             clearInterval(intervalRef.current);
           }
+          return;
         }
+
+        // AI判断（600msごと = 約3tick）
+        aiDecisionTimerRef.current += 200;
+        if (aiDecisionTimerRef.current >= 600) {
+          aiDecisionTimerRef.current = 0;
+
+          try {
+            const aiDecision = await matchAiDecide(matchId);
+
+            // AIがユニット召喚を決定した場合、自動的に実行
+            if (aiDecision.spawn_unit_spec_id) {
+              const updatedState = await matchSpawn(matchId, 'ai', aiDecision.spawn_unit_spec_id);
+
+              // 召喚したユニットの名前を取得
+              // 最後に追加されたAIユニットを探す
+              const aiUnits = updatedState.game_state.units.filter(u => u.side === 'ai');
+              const latestAiUnit = aiUnits[aiUnits.length - 1];
+
+              // AI思考を記録
+              setAiThoughts(prev => [...prev, {
+                timestamp: result.game_state.time_ms,
+                decision: 'spawn',
+                reason: aiDecision.reason,
+                unitName: latestAiUnit?.name || 'Unknown Unit'
+              }]);
+
+              console.log(`AI spawned unit: ${latestAiUnit?.name} - ${aiDecision.reason}`);
+            } else {
+              // 待機判断を記録
+              setAiThoughts(prev => [...prev, {
+                timestamp: result.game_state.time_ms,
+                decision: 'wait',
+                reason: aiDecision.reason
+              }]);
+
+              console.log(`AI waiting: ${aiDecision.reason}`);
+            }
+          } catch (aiError) {
+            // AI判断エラーはログのみ（ゲームは継続）
+            console.error('AI decision error:', aiError);
+          }
+        }
+
+        const elapsed = Date.now() - startTime;
+        const waitTime = Math.max(0, 200 - elapsed);
+
+        intervalRef.current = window.setTimeout(runGameLoop, waitTime);
       } catch (error) {
-        console.error('Failed to tick:', error);
+        showError(mapErrorToUserMessage(error));
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
       }
-    }, 200);
+    };
+
+    runGameLoop();
 
     return () => {
       if (intervalRef.current) {
@@ -71,17 +133,31 @@ export const GameScreen: React.FC = () => {
     };
   }, [matchId, gameState?.winner]);
 
-  // ユニット召喚
+  // ユニット召喚（デバウンス付き）
   const handleSpawn = async (unitSpecId: string) => {
-    if (!matchId || !gameState || gameState.winner) return;
+    if (!matchId || !gameState || gameState.winner || isSpawning) return;
 
+    setIsSpawning(true);
     try {
       const result = await matchSpawn(matchId, 'player', unitSpecId);
       setGameState(result.game_state);
     } catch (error) {
-      console.error('Failed to spawn unit:', error);
+      showError(mapErrorToUserMessage(error));
+    } finally {
+      setTimeout(() => setIsSpawning(false), 300);
     }
   };
+
+  if (showDeckSelector) {
+    return (
+      <div className="game-screen loading">
+        <DeckSelector
+          onSelectDeck={handleDeckSelect}
+          onClose={() => window.history.back()}
+        />
+      </div>
+    );
+  }
 
   if (!gameState) {
     return (
@@ -102,12 +178,21 @@ export const GameScreen: React.FC = () => {
         playerHp={gameState.player_base_hp}
         aiHp={gameState.ai_base_hp}
         playerCost={gameState.player_cost}
+        aiCost={gameState.ai_cost}
         timeMs={gameState.time_ms}
       />
 
-      {/* ゲーム画面 */}
-      <div className="game-canvas">
-        <GameScene gameState={gameState} />
+      {/* メインゲームエリア */}
+      <div className="game-main">
+        {/* ゲーム画面 */}
+        <div className="game-canvas">
+          <GameScene gameState={gameState} />
+        </div>
+
+        {/* AI思考パネル */}
+        <div className="ai-panel">
+          <AIThoughtDisplay thoughts={aiThoughts} maxDisplay={8} />
+        </div>
       </div>
 
       {/* デッキカード（5枚）*/}

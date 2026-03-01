@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { galleryList } from '../api/mockApi';
+import { galleryList, unitsDelete } from '../api';
+import { UnitCreator } from '../components/UnitCreator';
+import { useError } from '../components/ErrorNotification';
+import { mapErrorToUserMessage } from '../api/errors';
+import env from '../config/env';
 import type { UnitSpec } from '../types/game';
 import './GalleryScreen.css';
 
@@ -7,21 +11,45 @@ export const GalleryScreen: React.FC = () => {
   const [units, setUnits] = useState<UnitSpec[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUnit, setSelectedUnit] = useState<UnitSpec | null>(null);
+  const [showCreator, setShowCreator] = useState(false);
+  const { showError } = useError();
+
+  const fetchUnits = async () => {
+    try {
+      setLoading(true);
+      const result = await galleryList();
+      setUnits(result.unit_specs);
+    } catch (error) {
+      showError(mapErrorToUserMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUnits = async () => {
-      try {
-        const result = await galleryList();
-        setUnits(result.unit_specs);
-      } catch (error) {
-        console.error('Failed to fetch units:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUnits();
   }, []);
+
+  const handleUnitCreated = (unit: UnitSpec) => {
+    setUnits((prev) => [unit, ...prev]);
+    setShowCreator(false);
+  };
+
+  const handleDeleteUnit = async (unitId: string, unitName: string) => {
+    if (!window.confirm(`「${unitName}」を削除しますか？この操作は取り消せません。`)) {
+      return;
+    }
+
+    try {
+      await unitsDelete(unitId);
+      setUnits((prev) => prev.filter((u) => u.id !== unitId));
+      if (selectedUnit?.id === unitId) {
+        setSelectedUnit(null);
+      }
+    } catch (error) {
+      showError(mapErrorToUserMessage(error));
+    }
+  };
 
   if (loading) {
     return (
@@ -36,6 +64,22 @@ export const GalleryScreen: React.FC = () => {
       <div className="gallery-header">
         <h1>ユニットギャラリー</h1>
         <p className="gallery-subtitle">全 {units.length} 体のユニット</p>
+        <button
+          onClick={() => setShowCreator(true)}
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            marginTop: '16px',
+          }}
+        >
+          新しいユニットを作成
+        </button>
       </div>
 
       <div className="gallery-grid">
@@ -43,22 +87,47 @@ export const GalleryScreen: React.FC = () => {
           <div
             key={unit.id}
             className="unit-card"
-            onClick={() => setSelectedUnit(unit)}
+            style={{ position: 'relative' }}
           >
-            <div className="card-image">
-              {/* 幾何学形でユニットを表現 */}
-              <div
-                className="unit-shape"
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteUnit(unit.id, unit.name);
+              }}
+              style={{
+                position: 'absolute',
+                top: '8px',
+                right: '8px',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                border: 'none',
+                backgroundColor: 'rgba(220, 38, 38, 0.9)',
+                color: 'white',
+                fontSize: '18px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10,
+              }}
+              title="削除"
+            >
+              ×
+            </button>
+            <div className="card-image" onClick={() => setSelectedUnit(unit)}>
+              <img
+                src={`${env.apiBaseUrl}${unit.battle_sprite_url}`}
+                alt={unit.name}
                 style={{
-                  backgroundColor: '#00ff00',
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  margin: 'auto',
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  imageRendering: 'pixelated',
                 }}
               />
             </div>
-            <div className="card-content">
+            <div className="card-content" onClick={() => setSelectedUnit(unit)}>
               <h3 className="unit-name">{unit.name}</h3>
               <div className="unit-stats">
                 <div className="stat-row">
@@ -91,6 +160,14 @@ export const GalleryScreen: React.FC = () => {
         ))}
       </div>
 
+      {/* ユニット作成モーダル */}
+      {showCreator && (
+        <UnitCreator
+          onCreated={handleUnitCreated}
+          onClose={() => setShowCreator(false)}
+        />
+      )}
+
       {/* ユニット詳細モーダル */}
       {selectedUnit && (
         <div className="modal-overlay" onClick={() => setSelectedUnit(null)}>
@@ -99,15 +176,35 @@ export const GalleryScreen: React.FC = () => {
               ×
             </button>
             <h2>{selectedUnit.name}</h2>
+            <button
+              onClick={() => handleDeleteUnit(selectedUnit.id, selectedUnit.name)}
+              style={{
+                position: 'absolute',
+                top: '60px',
+                right: '20px',
+                padding: '8px 16px',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+              }}
+            >
+              削除
+            </button>
             <div className="modal-image">
-              <div
-                className="unit-shape-large"
+              <img
+                src={`${env.apiBaseUrl}${selectedUnit.battle_sprite_url}`}
+                alt={selectedUnit.name}
                 style={{
-                  backgroundColor: '#00ff00',
-                  width: 128,
-                  height: 128,
-                  borderRadius: '50%',
+                  width: '256px',
+                  height: '256px',
+                  objectFit: 'contain',
+                  imageRendering: 'pixelated',
                   margin: 'auto',
+                  display: 'block',
                 }}
               />
             </div>
