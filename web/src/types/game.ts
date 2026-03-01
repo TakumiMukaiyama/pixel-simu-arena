@@ -64,6 +64,7 @@ export interface Deck {
   id: string;
   name: string;
   unit_spec_ids: string[];
+  created_at?: string;
 }
 
 export interface ApiError {
