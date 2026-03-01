@@ -88,9 +88,9 @@ export const GameScreen: React.FC = () => {
           return;
         }
 
-        // AI判断（600msごと = 約3tick）
+        // AI判断（1200msごと = 約6tick）
         aiDecisionTimerRef.current += 200;
-        if (aiDecisionTimerRef.current >= 600) {
+        if (aiDecisionTimerRef.current >= 1200) {
           aiDecisionTimerRef.current = 0;
 
           try {
