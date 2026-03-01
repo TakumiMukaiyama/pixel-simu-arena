@@ -26,7 +26,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
     return `${apiBaseUrl}/static/backgrounds/battle_field.png`;
   }, []);
 
-  // 事前読み込みする画像URLのリスト
+  // 事前読み込みする画像URLのリスト（初回マウント時のみ計算）
   const imagesToPreload = useMemo(() => {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
     const urls = new Set<string>();
@@ -42,7 +42,8 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
     });
 
     return Array.from(urls);
-  }, [gameState.units]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 初回マウント時のみ実行（gameState.unitsの変更を無視）
 
   // 画像の事前読み込み
   useEffect(() => {
@@ -72,7 +73,6 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
             await Assets.load(url);
             loaded++;
             const progress = Math.round((loaded / total) * 100);
-            console.log(`Loaded ${url} (${loaded}/${total}) - ${progress}%`);
             setLoadingProgress(progress);
           } catch (err) {
             console.warn(`Failed to load image: ${url}`, err);
@@ -89,7 +89,8 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
     };
 
     preloadAssets();
-  }, [imagesToPreload, assetsLoadingState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 初回マウント時のみ実行
 
   // グリッド線を描画
   const drawGridLines = useCallback((g: any) => {
@@ -202,9 +203,6 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
   const retryPreload = useCallback(() => {
     setAssetsLoadingState('idle');
   }, []);
-
-  // デバッグ: 現在の状態をログ出力
-  console.log('Current assetsLoadingState:', assetsLoadingState);
 
   // ローディング中の表示
   if (assetsLoadingState === 'loading') {
