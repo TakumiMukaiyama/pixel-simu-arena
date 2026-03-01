@@ -74,6 +74,10 @@ async def generate_unit_from_prompt(prompt: str) -> UnitSpec:
         unit_data = adjust_stats_to_cost(unit_data, target_cost)
         cost = target_cost
 
+    # プロンプトの長さに応じたコストペナルティ
+    prompt_penalty = _calculate_prompt_penalty(prompt)
+    cost = min(8, cost + prompt_penalty)  # 最大コスト8
+
     unit_data["cost"] = cost
 
     # 3. 画像URLはプレースホルダーで初期化（バックグラウンドで生成）
@@ -190,6 +194,48 @@ def _call_mistral_for_unit(prompt: str, max_retries: int = 3) -> Dict:
                 return _fallback_unit(prompt)
 
     return _fallback_unit(prompt)
+
+
+def _calculate_prompt_penalty(prompt: str) -> int:
+    """
+    プロンプトの長さに応じたコストペナルティを計算
+
+    長いプロンプト = より複雑な要望 = より高いコスト
+
+    Args:
+        prompt: ユーザーのプロンプト
+
+    Returns:
+        追加コスト (0-3)
+    """
+    # 単語数でカウント（スペース、カンマ、ピリオドで分割）
+    import re
+    words = re.findall(r'\w+', prompt.lower())
+    word_count = len(words)
+
+    # 文字数も考慮
+    char_count = len(prompt.strip())
+
+    # ペナルティ計算
+    penalty = 0
+
+    # 単語数ベースのペナルティ
+    if word_count >= 30:  # 30単語以上
+        penalty += 3
+    elif word_count >= 20:  # 20単語以上
+        penalty += 2
+    elif word_count >= 10:  # 10単語以上
+        penalty += 1
+
+    # 文字数ベースの追加ペナルティ（日本語など単語区切りがない言語対応）
+    if char_count >= 150:  # 150文字以上
+        penalty = max(penalty, 3)
+    elif char_count >= 100:  # 100文字以上
+        penalty = max(penalty, 2)
+    elif char_count >= 50:  # 50文字以上
+        penalty = max(penalty, 1)
+
+    return min(3, penalty)  # 最大ペナルティ+3
 
 
 def _create_sprite_prompt_text(unit_data: dict) -> str:

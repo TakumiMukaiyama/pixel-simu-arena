@@ -87,4 +87,4 @@ run = "docker compose logs -f server"
 
 [tasks.docker-db-shell]
 dir = "server"
-run = "docker compose exec postgres psql -U pixelsimu -d pixel_simu_arena"
+run = "docker compose exec postgres psql -U pixel_user -d pixel_simu_arena"
