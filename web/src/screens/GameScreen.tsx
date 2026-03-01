@@ -28,6 +28,23 @@ export const GameScreen: React.FC = () => {
   const aiDecisionTimerRef = useRef<number>(0);
   const { showError } = useError();
 
+  // デバッグツールをwindowに追加
+  useEffect(() => {
+    if (gameState) {
+      (window as any).debugGame = {
+        getState: () => gameState,
+        getUnits: () => gameState.units.map(u => ({
+          id: u.instance_id,
+          name: u.name,
+          side: u.side,
+          spriteUrl: u.battle_sprite_url,
+          hasValidSprite: u.battle_sprite_url &&
+                         !u.battle_sprite_url.includes('placeholder')
+        }))
+      };
+    }
+  }, [gameState]);
+
   // ゲーム開始
   const handleDeckSelect = async (deckId: string) => {
     try {
