@@ -304,9 +304,9 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
           justifyContent: 'center',
           color: 'white',
         }}>
-          <div style={{ fontSize: '18px', marginBottom: '16px' }}>
+          {/* <div style={{ fontSize: '18px', marginBottom: '16px' }}>
             {assetsLoadingState === 'idle' ? '初期化中...' : '画像を読み込み中...'}
-          </div>
+          </div> */}
           {assetsLoadingState === 'loading' && (
             <>
               <div style={{

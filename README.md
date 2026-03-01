@@ -4,17 +4,6 @@
 
 🎮 **[Live Demo](#)** | 📹 **[デモ動画 (2分)](#)** | 🐙 **[GitHub](https://github.com/TakumiMukaiyama/pixel-simu-arena)**
 
----
-
-## 🎬 Demo
-### Battle Demo
-> リアルタイムバトル - ユニットが自律的に移動・攻撃
-
-![Battle Demo](docs/images/1.png)
-*プレースホルダー: 実際のバトルシーン*
-
----
-
 ## 💡 Why This Project?
 
 ### Problem
