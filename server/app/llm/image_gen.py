@@ -1,15 +1,17 @@
 """
 画像生成
 
-PixelLab APIを使用してユニットのスプライトとカード絵を生成する。
+Mistral AI画像生成APIを優先的に使用し、失敗時にPixelLab APIにフォールバック。
 """
 import base64
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Optional
 from uuid import UUID
+import io
 
 from PIL import Image, ImageDraw
 from pixellab import Client as PixelLabClient
+from mistralai import Mistral
 
 from app.config import get_settings
 
@@ -49,6 +51,11 @@ CARD_PARAMS = {
     "detail": "highly detailed",
     "text_guidance_scale": 9.0,
 }
+
+
+def _get_mistral_client() -> Mistral:
+    """Mistralクライアントを取得"""
+    return Mistral(api_key=settings.mistral_api_key)
 
 
 def _get_pixellab_client() -> PixelLabClient:
@@ -165,6 +172,58 @@ def _create_card_prompt(unit_data: dict, original_prompt: str) -> str:
     return prompt
 
 
+def _generate_with_mistral(
+    prompt: str,
+    output_path: str,
+    size: int
+) -> Optional[str]:
+    """
+    Mistral AI画像生成APIで画像を生成
+
+    Args:
+        prompt: 画像生成プロンプト
+        output_path: 保存先パス
+        size: 画像サイズ（正方形）
+
+    Returns:
+        成功時は保存したファイルパス、失敗時はNone
+    """
+    try:
+        client = _get_mistral_client()
+
+        # ディレクトリ作成
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+        # Mistral AI画像生成API呼び出し
+        # ドキュメント: https://docs.mistral.ai/agents/tools/built-in/image_generation
+        response = client.images.generate(
+            model="pixtral-large-latest",
+            prompt=prompt,
+            size=f"{size}x{size}",
+            response_format="b64_json"
+        )
+
+        # Base64データを取得
+        if not response.data or len(response.data) == 0:
+            raise Exception("Mistral AI: レスポンスにデータがありません")
+
+        image_data = response.data[0]
+        if not hasattr(image_data, 'b64_json') or not image_data.b64_json:
+            raise Exception("Mistral AI: b64_jsonデータがありません")
+
+        # Base64デコードして保存
+        decoded_data = base64.b64decode(image_data.b64_json)
+        with open(output_path, "wb") as f:
+            f.write(decoded_data)
+
+        print(f"[Mistral AI] 画像生成成功: {output_path}")
+        return output_path
+
+    except Exception as e:
+        print(f"[Mistral AI] 画像生成失敗: {e}")
+        return None
+
+
 def _generate_and_save_image(
     prompt: str,
     output_path: str,
@@ -259,6 +318,8 @@ def generate_unit_images(
     """
     ユニット画像を生成（バトルスプライトのみ）
 
+    Mistral AI画像生成APIを優先的に使用し、失敗時にPixelLabにフォールバック。
+
     Args:
         unit_id: ユニットUUID
         unit_data: ユニット統計辞書
@@ -270,21 +331,32 @@ def generate_unit_images(
     """
     # 1. プロンプト生成
     battle_sprite_prompt = _create_battle_sprite_prompt(unit_data, original_prompt)
+    battle_sprite_path = f"static/battle_sprites/{unit_id}.png"
 
-    # 2. バトルスプライト生成（128x128、透明背景、コマ風）
-    try:
-        battle_sprite_path = f"static/battle_sprites/{unit_id}.png"
-        _generate_and_save_image(
-            prompt=battle_sprite_prompt,
-            output_path=battle_sprite_path,
-            params=BATTLE_SPRITE_PARAMS
-        )
-        battle_sprite_url = f"/static/battle_sprites/{unit_id}.png"
-        print(f"[PixelLab] バトルスプライト生成成功: {battle_sprite_path}")
-    except Exception as e:
-        print(f"[PixelLab] バトルスプライト生成失敗: {e}")
-        _create_placeholder_image(f"static/battle_sprites/{unit_id}.png", size=128)
-        battle_sprite_url = f"/static/battle_sprites/{unit_id}.png"
+    # 2. Mistral AI画像生成を試行
+    print(f"[Image Generation] Mistral AIで画像生成を試行...")
+    result_path = _generate_with_mistral(
+        prompt=battle_sprite_prompt,
+        output_path=battle_sprite_path,
+        size=128
+    )
+
+    # 3. Mistral AI失敗時はPixelLabにフォールバック
+    if result_path is None:
+        print(f"[Image Generation] PixelLabにフォールバック...")
+        try:
+            _generate_and_save_image(
+                prompt=battle_sprite_prompt,
+                output_path=battle_sprite_path,
+                params=BATTLE_SPRITE_PARAMS
+            )
+            print(f"[PixelLab] バトルスプライト生成成功: {battle_sprite_path}")
+        except Exception as e:
+            print(f"[PixelLab] バトルスプライト生成失敗: {e}")
+            _create_placeholder_image(battle_sprite_path, size=128)
+            print(f"[Placeholder] プレースホルダー画像を作成: {battle_sprite_path}")
+
+    battle_sprite_url = f"/static/battle_sprites/{unit_id}.png"
 
     # sprite_url と card_url も同じ画像を使用（後方互換性）
     sprite_url = battle_sprite_url
