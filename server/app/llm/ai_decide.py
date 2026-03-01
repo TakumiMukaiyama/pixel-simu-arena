@@ -33,10 +33,40 @@ Strategy considerations:
 3. Manage cost efficiently
 4. Consider timing (e.g., save cost for critical moments)
 
-Output ONLY valid JSON:
+ANALYSIS REQUIREMENTS:
+You must provide detailed analysis including:
+1. Battlefield assessment (enemy threats, ally status, strategic situation)
+2. Evaluation of ALL available units (with pros/cons and score 0-100)
+3. Step-by-step reasoning process (3-5 steps)
+4. Strategic approach classification
+
+Output ONLY valid JSON with this structure:
 {
   "spawn_unit_spec_id": "unit-id" or null,
-  "reason": "Brief tactical reason (max 100 chars)"
+  "reason": "Brief tactical reason (max 100 chars)",
+  "analysis": {
+    "battlefield_assessment": {
+      "enemy_threat_level": "high|medium|low",
+      "enemy_composition": "2-3 sentence description",
+      "ally_status": "2-3 sentence description",
+      "strategic_situation": "Overall assessment"
+    },
+    "candidate_evaluation": [
+      {
+        "unit_id": "uuid",
+        "unit_name": "name",
+        "score": 0-100,
+        "pros": ["array of strengths"],
+        "cons": ["array of weaknesses"],
+        "cost_efficiency": "high|medium|low"
+      }
+    ],
+    "decision_reasoning": [
+      "Array of reasoning steps (3-5 steps)"
+    ],
+    "selected_strategy": "defensive|offensive|economic|balanced",
+    "confidence": 0.0-1.0
+  }
 }
 
 If you decide not to spawn, set spawn_unit_spec_id to null."""
@@ -99,7 +129,8 @@ async def ai_decide_spawn(game_state: GameState, ai_deck: Deck) -> dict:
         return {
             "spawn_unit_spec_id": spawn_id,
             "wait_ms": 600,
-            "reason": decision.get("reason", "")
+            "reason": decision.get("reason", ""),
+            "analysis": decision.get("analysis")
         }
 
     except Exception as e:
@@ -161,7 +192,7 @@ def _call_mistral_for_decision(summary: str, available_units: list[UnitSpec], ma
                     {"role": "user", "content": summary}
                 ],
                 temperature=0.8,
-                max_tokens=300,
+                max_tokens=1500,
                 response_format={"type": "json_object"}
             )
 
@@ -175,6 +206,8 @@ def _call_mistral_for_decision(summary: str, available_units: list[UnitSpec], ma
                 decision["spawn_unit_spec_id"] = None
             if "reason" not in decision:
                 decision["reason"] = "No reason provided"
+            if "analysis" not in decision:
+                decision["analysis"] = None
 
             return decision
 
