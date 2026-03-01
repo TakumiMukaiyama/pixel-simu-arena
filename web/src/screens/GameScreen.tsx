@@ -110,16 +110,14 @@ export const GameScreen: React.FC = () => {
                 timestamp: result.game_state.time_ms,
                 decision: 'spawn',
                 reason: aiDecision.reason,
-                unitName: latestAiUnit?.name || 'Unknown Unit',
-                analysis: aiDecision.analysis
+                unitName: latestAiUnit?.name || 'Unknown Unit'
               }]);
             } else {
               // 待機判断を記録
               setAiThoughts(prev => [...prev, {
                 timestamp: result.game_state.time_ms,
                 decision: 'wait',
-                reason: aiDecision.reason,
-                analysis: aiDecision.analysis
+                reason: aiDecision.reason
               }]);
             }
           } catch (aiError) {
