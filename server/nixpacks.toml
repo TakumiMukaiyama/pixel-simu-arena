@@ -1,14 +1,13 @@
 # Nixpacks configuration for backend
-# Railway will use Dockerfile if available, otherwise use this
 
 [phases.setup]
-nixPkgs = ["python311"]
+nixPkgs = ["python311", "openssl"]
 
 [phases.install]
 cmds = [
-  "curl -LsSf https://astral.sh/uv/install.sh | sh",
-  "export PATH=$HOME/.cargo/bin:$PATH",
-  "uv sync --frozen --no-dev"
+  "pip install --upgrade pip",
+  "pip install uv",
+  "uv sync --no-dev"
 ]
 
 [phases.build]
