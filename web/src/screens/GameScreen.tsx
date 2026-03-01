@@ -88,9 +88,9 @@ export const GameScreen: React.FC = () => {
           return;
         }
 
-        // AI判断（600msごと = 約3tick）
+        // AI判断（1200msごと = 約6tick）
         aiDecisionTimerRef.current += 200;
-        if (aiDecisionTimerRef.current >= 600) {
+        if (aiDecisionTimerRef.current >= 1200) {
           aiDecisionTimerRef.current = 0;
 
           try {
@@ -110,21 +110,15 @@ export const GameScreen: React.FC = () => {
                 timestamp: result.game_state.time_ms,
                 decision: 'spawn',
                 reason: aiDecision.reason,
-                unitName: latestAiUnit?.name || 'Unknown Unit',
-                analysis: aiDecision.analysis
+                unitName: latestAiUnit?.name || 'Unknown Unit'
               }]);
-
-              console.log(`AI spawned unit: ${latestAiUnit?.name} - ${aiDecision.reason}`);
             } else {
               // 待機判断を記録
               setAiThoughts(prev => [...prev, {
                 timestamp: result.game_state.time_ms,
                 decision: 'wait',
-                reason: aiDecision.reason,
-                analysis: aiDecision.analysis
+                reason: aiDecision.reason
               }]);
-
-              console.log(`AI waiting: ${aiDecision.reason}`);
             }
           } catch (aiError) {
             // AI判断エラーはログのみ（ゲームは継続）
@@ -182,7 +176,7 @@ export const GameScreen: React.FC = () => {
     } catch (error) {
       showError(mapErrorToUserMessage(error));
     } finally {
-      setTimeout(() => setIsSpawning(false), 300);
+      setTimeout(() => setIsSpawning(false), 500);
     }
   };
 

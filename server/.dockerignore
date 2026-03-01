@@ -38,6 +38,7 @@ static/sprites/*
 static/cards/*
 static/backgrounds/*
 !static/backgrounds/.gitkeep
+!static/backgrounds/battle_field.png
 
 # Alembic
 alembic.ini

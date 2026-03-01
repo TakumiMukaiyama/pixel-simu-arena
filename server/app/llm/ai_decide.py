@@ -17,56 +17,21 @@ from app.schemas.unit import UnitSpec
 settings = get_settings()
 
 
-AI_DECISION_SYSTEM_PROMPT = """You are an AI player in a 1-lane realtime battle game.
+AI_DECISION_SYSTEM_PROMPT = """You are an AI player in a 1-lane battle game.
 
 Goal: Destroy the enemy base (at position 0). Your base is at position 20.
 
 Game mechanics:
-- Lane: 0 (player base) ←→ 20 (AI base)
 - Player units move right (→), AI units move left (←)
 - Units attack enemies in range automatically
 - Cost regenerates over time (max 20.0)
 
-Strategy considerations:
-1. Balance offense and defense
-2. Counter enemy composition (e.g., spawn tanks vs high damage enemies)
-3. Manage cost efficiently
-4. Consider timing (e.g., save cost for critical moments)
+Strategy: Balance offense and defense, counter enemy composition, manage cost efficiently.
 
-ANALYSIS REQUIREMENTS:
-You must provide detailed analysis including:
-1. Battlefield assessment (enemy threats, ally status, strategic situation)
-2. Evaluation of ALL available units (with pros/cons and score 0-100)
-3. Step-by-step reasoning process (3-5 steps)
-4. Strategic approach classification
-
-Output ONLY valid JSON with this structure:
+Output ONLY valid JSON:
 {
   "spawn_unit_spec_id": "unit-id" or null,
-  "reason": "Brief tactical reason (max 100 chars)",
-  "analysis": {
-    "battlefield_assessment": {
-      "enemy_threat_level": "high|medium|low",
-      "enemy_composition": "2-3 sentence description",
-      "ally_status": "2-3 sentence description",
-      "strategic_situation": "Overall assessment"
-    },
-    "candidate_evaluation": [
-      {
-        "unit_id": "uuid",
-        "unit_name": "name",
-        "score": 0-100,
-        "pros": ["array of strengths"],
-        "cons": ["array of weaknesses"],
-        "cost_efficiency": "high|medium|low"
-      }
-    ],
-    "decision_reasoning": [
-      "Array of reasoning steps (3-5 steps)"
-    ],
-    "selected_strategy": "defensive|offensive|economic|balanced",
-    "confidence": 0.0-1.0
-  }
+  "reason": "Brief reason (max 50 chars)"
 }
 
 If you decide not to spawn, set spawn_unit_spec_id to null."""
@@ -129,8 +94,7 @@ async def ai_decide_spawn(game_state: GameState, ai_deck: Deck) -> dict:
         return {
             "spawn_unit_spec_id": spawn_id,
             "wait_ms": 600,
-            "reason": decision.get("reason", ""),
-            "analysis": decision.get("analysis")
+            "reason": decision.get("reason", "")
         }
 
     except Exception as e:
@@ -192,7 +156,7 @@ def _call_mistral_for_decision(summary: str, available_units: list[UnitSpec], ma
                     {"role": "user", "content": summary}
                 ],
                 temperature=0.8,
-                max_tokens=1500,
+                max_tokens=150,
                 response_format={"type": "json_object"}
             )
 
@@ -206,8 +170,6 @@ def _call_mistral_for_decision(summary: str, available_units: list[UnitSpec], ma
                 decision["spawn_unit_spec_id"] = None
             if "reason" not in decision:
                 decision["reason"] = "No reason provided"
-            if "analysis" not in decision:
-                decision["analysis"] = None
 
             return decision
 
