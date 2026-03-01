@@ -19,6 +19,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
   // 読み込み状態の管理
   const [assetsLoadingState, setAssetsLoadingState] = useState<LoadingState>('idle');
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadedUnitIds, setLoadedUnitIds] = useState<string>(''); // 読み込み済みのユニット構成
 
   // 背景画像のURL
   const backgroundUrl = useMemo(() => {
@@ -26,7 +27,13 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
     return `${apiBaseUrl}/static/backgrounds/battle_field.png`;
   }, []);
 
-  // 事前読み込みする画像URLのリスト（初回マウント時のみ計算）
+  // 事前読み込みする画像URLのリスト
+  // ユニットのIDリストをキーにして、ユニットの追加/削除時のみ再計算
+  const unitIds = useMemo(() =>
+    gameState.units.map(u => u.instance_id).sort().join(','),
+    [gameState.units]
+  );
+
   const imagesToPreload = useMemo(() => {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
     const urls = new Set<string>();
@@ -42,12 +49,17 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
     });
 
     return Array.from(urls);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 初回マウント時のみ実行（gameState.unitsの変更を無視）
+  }, [unitIds, gameState.units]);
 
-  // 画像の事前読み込み
+  // 画像の事前読み込み（ユニット構成が変わった時のみ実行）
   useEffect(() => {
-    if (assetsLoadingState !== 'idle') {
+    // 既に同じユニット構成で読み込み済みの場合はスキップ
+    if (loadedUnitIds === unitIds && assetsLoadingState === 'loaded') {
+      return;
+    }
+
+    // 読み込み中の場合はスキップ
+    if (assetsLoadingState === 'loading') {
       return;
     }
 
@@ -55,11 +67,12 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
     if (imagesToPreload.length === 0) {
       console.log('No images to preload, setting state to loaded');
       setAssetsLoadingState('loaded');
+      setLoadedUnitIds(unitIds);
       return;
     }
 
     const preloadAssets = async () => {
-      console.log(`Starting to preload ${imagesToPreload.length} images:`, imagesToPreload);
+      console.log(`Starting to preload ${imagesToPreload.length} images for units: ${unitIds}`);
       setAssetsLoadingState('loading');
       setLoadingProgress(0);
 
@@ -82,6 +95,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
         await Promise.all(loadPromises);
         console.log('All images loaded successfully');
         setAssetsLoadingState('loaded');
+        setLoadedUnitIds(unitIds); // 読み込み完了したユニット構成を記録
       } catch (error) {
         console.error('Asset preloading error:', error);
         setAssetsLoadingState('error');
@@ -89,8 +103,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
     };
 
     preloadAssets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 初回マウント時のみ実行
+  }, [unitIds, imagesToPreload, assetsLoadingState, loadedUnitIds]); // ユニット構成が変わった時に再実行
 
   // グリッド線を描画
   const drawGridLines = useCallback((g: any) => {
