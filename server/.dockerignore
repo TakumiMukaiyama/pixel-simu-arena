@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env.test
+.env.local
+
+# Database (will be created in volume)
+*.db
+*.db-journal
+
+# Static files (will be created at runtime)
+static/sprites/*
+static/cards/*
+static/backgrounds/*
+!static/backgrounds/.gitkeep
+
+# Alembic
+alembic.ini
+alembic/
+
+# Docs
+*.md
+docs/
