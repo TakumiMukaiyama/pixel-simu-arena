@@ -132,7 +132,7 @@ export const GameScreen: React.FC = () => {
         }
 
         const elapsed = Date.now() - startTime;
-        const waitTime = Math.max(0, 200 - elapsed);
+        const waitTime = Math.max(0, 250 - elapsed);
 
         intervalRef.current = window.setTimeout(runGameLoop, waitTime);
       } catch (error) {
