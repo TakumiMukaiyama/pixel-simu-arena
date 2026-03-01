@@ -11,7 +11,6 @@ const LANE_HEIGHT = 200;
 const GRID_SIZE = 40; // 800px / 20マス = 40px/マス
 const BASE_WIDTH = 30;
 const BASE_HEIGHT = 100;
-const UNIT_RADIUS = 15;
 
 export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
   // 背景画像のURL
