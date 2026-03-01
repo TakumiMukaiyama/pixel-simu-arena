@@ -43,10 +43,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS設定（React開発サーバー用）
+# CORS設定
+settings = get_settings()
+allowed_origins = settings.cors_origins.split(",") if settings.cors_origins else ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     environment: str = "development"
+    cors_origins: str = "http://localhost:5173,http://localhost:3000"
 
     # Database
     database_url: str
