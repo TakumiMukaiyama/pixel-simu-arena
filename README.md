@@ -17,14 +17,8 @@
 ### Battle Demo
 > リアルタイムバトル - ユニットが自律的に移動・攻撃
 
-![Battle Demo](docs/images/demo_battle.gif)
+![Battle Demo](docs/images/demo_battle.png)
 *プレースホルダー: 実際のバトルシーン*
-
-### AI Decision Making Demo
-> AIが戦場状態を分析して戦略的判断
-
-![AI Decision Demo](docs/images/demo_ai_decision.gif)
-*プレースホルダー: AIが戦場状態（ユニット位置・HP・コスト）を分析してユニット召喚を決定*
 
 ---
 
@@ -38,47 +32,33 @@
 
 ### Innovation
 
-**1. AI-Powered Unit Creation Pipeline**
-- **mistral-large-latest**: プロンプトから自動的にバランスの取れたステータス（HP、攻撃力、速度など）をJSON形式で生成
-- **pixtral-large-latest (fallback: PixelLab)**: ユニット特性に基づいた128×128ピクセルアートを自動生成
-- パワースコア計算とコスト調整でゲームバランスを自動維持
+**1. Multi-Modal AI Pipeline**
+- テキスト → バランスの取れたステータス生成
+- ステータス → ピクセルアートの自動生成（Mistral Pixtral Large）
+- リアルタイムAI対戦相手との戦略バトル
 
 **2. Strategic AI Opponent**
 - 単なるランダム行動ではない
-- **mistral-large-latest**: ゲーム状態（ユニット位置・HP・残コスト）を構造化データとして分析
+- **Mistral LLMがゲーム状態（ユニット位置・HP・コスト）を分析**
 - 敵の編成に対抗する戦略的なユニット召喚を決定
-- JSON出力モードで確実な意思決定
 
 **3. Real-Time Autonomous Gameplay**
 - 200msティックベースのゲームエンジン
 - ユニットが自律的に移動・攻撃
 - 動的で予測不可能なバトル
 
----
-
 ## 🏆 Hackathon Highlights
 
 **Track:** Mistral AI - Building with Mistral API
 
-**このプロジェクトが際立つ理由:**
-
-1. **高度なAIエージェントシステム** - 単純なプロンプトではなく、AIがゲーム状態を構造化データとして分析し、リアルタイムで戦略的判断を実行
-
-2. **複数のMistral APIの統合** - テキスト生成（mistral-large-latest）と画像生成（Pixtral Large）を組み合わせた自動ユニット作成
-
-3. **プロダクション品質のアーキテクチャ** - FastAPIバックエンド、Reactフロントエンド、ゲームエンジンとAI統合の適切な分離
-
----
-
 ## 🎯 Core Features
 
-- **🎨 Prompt-Driven Unit Creation**: 自然言語でユニットを記述 - 「素早い忍者」「重装甲の戦車」などと入力すると、バランスの取れたステータスで具現化
-- **🖼️ Automatic Pixel Art Generation**: 各ユニットに128×128のユニークなピクセルアートを自動生成（pixtral-large-latest + PixelLab API fallback）
-- **⚔️ Real-Time 1-Lane Battle**: ユニットが0-20のレーン上で自動的に移動・戦闘
-- **🤖 Intelligent AI Opponent**: Mistral AIが戦場状態を分析し、戦略的にユニット召喚を決定
-- **📚 Visual Gallery**: 生成したユニットを閲覧し、カスタムデッキに整理
+- **Prompt-Driven Unit Creation**: 自然言語でユニットを記述 - 「素早い忍者」「重装甲の戦車」などと入力すると、バランスの取れたステータスで具現化
+- **Automatic Pixel Art Generation**: 各ユニットに128×128のユニークなピクセルアートを自動生成（Mistral Pixtral Large + PixelLab API fallback）
+- **Real-Time 1-Lane Battle**: ユニットが0-20のレーン上で自動的に移動・戦闘
+- **Intelligent AI Opponent**: Mistral AIが戦場状態を分析し、戦略的にユニット召喚を決定
+- **Visual Gallery**: 生成したユニットを閲覧し、カスタムデッキに整理
 
----
 
 ## 🏗️ Technical Architecture
 
@@ -93,7 +73,7 @@
        │                            │
        ▼                            ▼
 ┌─────────────────┐         ┌──────────────────┐
-│  Visual Assets  │         │   SQLite DB      │
+│  Visual Assets  │         │   Postgres DB      │
 │  (Sprites)      │         │   (Game State)   │
 └─────────────────┘         └──────────────────┘
 ```
@@ -104,7 +84,7 @@
 - FastAPI - High-performance async API
 - Pydantic v2 - Type-safe data validation
 - Mistral API - `mistral-large-latest` for reasoning, `Pixtral Large` for images
-- SQLite - Persistent storage
+- PostgreSQL - Persistent storage
 
 **Frontend (TypeScript)**
 - React 18 - Component architecture
@@ -112,9 +92,9 @@
 - Vite - Fast development builds
 
 **AI Integration**
-- **Text Generation**: Unit stats balancing, AI strategic decisions (mistral-large-latest with JSON mode)
-- **Image Generation**: Automatic 128×128 pixel art creation (pixtral-large-latest + PixelLab fallback)
-- **Strategic Reasoning**: Battlefield state analysis and counter-unit selection (mistral-large-latest)
+- **Text Generation**: Unit stats balancing, AI strategic decisions (mistral-large-latest)
+- **Image Generation**: Automatic 128×128 pixel art creation (Pixtral Large + PixelLab fallback)
+- **Vision Model**: Battlefield state analysis for AI decision-making (Pixtral Large)
 
 ---
 
@@ -191,8 +171,8 @@ Output: {
 ### AI Decision-Making Flow
 
 ```
-Battlefield State → Text Analysis → Strategic Reasoning → Unit Selection
-  {units, hp...}   (structured data)  (mistral-large)      "Spawn Tank!"
+Battlefield State → Vision Analysis → Strategic Reasoning → Unit Selection
+  {units, hp...}   (Pixtral sees)    (mistral-large)      "Spawn Tank!"
 ```
 
 ### Real-Time Battle System
@@ -213,9 +193,9 @@ pixel-simu-arena/
 │   │   ├── api/           # REST API endpoints
 │   │   ├── engine/        # Game engine (tick processing, combat logic)
 │   │   ├── llm/           # Mistral + PixelLab integration
-│   │   │   ├── unit_gen.py          # Unit generation from prompts
+│   │   │   ├── unit_creator.py      # Unit generation from prompts
 │   │   │   ├── image_gen.py         # 128×128 pixel art creation
-│   │   │   └── ai_decide.py         # AI decision-making agent
+│   │   │   └── ai_player.py         # AI decision-making agent
 │   │   ├── storage/       # Database and file storage
 │   │   └── schemas/       # Pydantic models
 │   └── static/
@@ -240,69 +220,37 @@ pixel-simu-arena/
 
 ## 🔧 Key Technical Innovations
 
-### 1. AI-Powered Unit Creation Pipeline
+### 1. Multi-Stage AI Pipeline
 
 単にユーザー入力をLLMに投げるのではなく、洗練されたパイプラインを使用:
 
 ```python
-# Stage 1: mistral-large-latest でユニットステータスを生成（JSON mode）
-response = client.chat.complete(
-    model="mistral-large-latest",
-    messages=[
-        {"role": "system", "content": UNIT_GENERATION_SYSTEM_PROMPT},
-        {"role": "user", "content": user_prompt}
-    ],
-    response_format={"type": "json_object"}  # 確実なJSON出力
-)
-
-# Stage 2: パワースコア計算 → ゲームバランス調整
-power = calculate_power_score(unit_data)
-cost = calculate_cost(power)
-unit_data = adjust_stats_to_cost(unit_data, target_cost)
-
-# Stage 3: ユニット特性に基づいた画像プロンプト生成
-image_prompt = f"pixel art, 128x128, {unit_name}, {modifiers}, game token"
-
-# Stage 4: Pixtral Large で画像生成（失敗時はPixelLabにフォールバック）
-response = client.images.generate(
-    model="pixtral-large-latest",
-    prompt=image_prompt,
-    size="128x128"
-)
+# Stage 1: ユーザー意図の解析とキーキャラクタリスティックの抽出
+# Stage 2: ゲームバランスルールを使った統計値の生成
+# Stage 3: ユニットのテーマに合致する画像プロンプトの作成
+# Stage 4: Mistral Pixtral Large（またはPixelLab fallback）で128x128ピクセルアートを生成
 ```
 
 これにより一貫した品質とゲームバランスを確保。
 
-### 2. Strategic AI Opponent
+### 2. Vision-Powered AI Opponent
 
-AI対戦相手はMistral LLMを使ってゲーム状態を分析:
+AI対戦相手はMistralの視覚機能を使って戦場を「見る」:
 
 ```python
-# ゲーム状態を構造化テキストで要約
-summary = f"""Current game state:
-- AI cost: {game_state.ai_cost} / {game_state.max_cost}
-- AI base HP: {game_state.ai_base_hp} / 100
-- Player base HP: {game_state.player_base_hp} / 100
+# ゲーム状態を視覚表現に変換
+battlefield_image = render_battlefield_state(game_state)
 
-AI units on field: [pos, hp, atk, range...]
-Enemy units on field: [pos, hp, atk, range...]
-Available units to spawn: [id, cost, stats...]
-"""
-
-# LLMに戦略的決定を依頼
-response = client.chat.complete(
-    model="mistral-large-latest",
-    messages=[
-        {"role": "system", "content": "You are an AI player..."},
-        {"role": "user", "content": summary}
-    ],
-    response_format={"type": "json_object"}
+# AIに分析・決定させる
+response = mistral_vision_api(
+    image=battlefield_image,
+    prompt="あなたは戦略ゲームをプレイしています。戦場を分析し、次の行動を決定してください。"
 )
 ```
 
 **これは単なるランダムなスポーンではありません:**
-- 現在のユニット配置と残りHPを分析
-- 利用可能なコストと召喚可能なユニットを考慮
+- 現在の戦場レイアウトを分析
+- 利用可能なマナとユニットコストを考慮
 - 脅威と機会を評価
 - プレイヤーの編成に対抗する戦略的決定
 
@@ -315,43 +263,12 @@ PixiJSが60 FPSレンダリングを処理し、ゲームエンジンは5 TPS（
 
 ---
 
-## 📊 Mistral API Usage
+## 📊 API Usage
 
 This project showcases advanced Mistral API integration:
 
 | Feature | Model/API | Use Case |
 |---------|-----------|----------|
-| Unit Generation | `mistral-large-latest` | Parse user prompts, generate balanced stats (HP, ATK, speed, range) in JSON format |
-| Image Generation | `pixtral-large-latest` (fallback: `PixelLab API`) | Generate 128×128 pixel art game tokens based on unit characteristics |
-| AI Strategic Decision-Making | `mistral-large-latest` | Analyze game state (unit positions, HP, cost), strategically select counter units in JSON format |
-
-**Estimated Costs** (with typical usage):
-- Unit creation: ~$0.01-0.02 per unit
-- Single match (50 turns): ~$0.50-1.00
-- 100 units + 10 matches: ~$7-8
-
-See [Mistral Pricing](https://mistral.ai/pricing/) for details.
-
----
-
-## 🎉 Future Enhancements
-
-- Unit evolution system（バトル中のユニット成長）
-- Tournament mode（トーナメント戦）
-- Voice-to-unit（音声でユニット作成）
-- Community gallery（ユニットのシェア機能）
-- Multiplayer battles（プレイヤー同士の対戦）
-
----
-
-**Built for the Mistral AI Hackathon**
-
-*テキスト生成、画像生成、戦略的AI推論を組み合わせたリアルタイムインタラクティブ体験*
-
----
-
-## 📖 Additional Resources
-
-- **Full API Documentation**: http://localhost:8000/docs
-- **Design Documents**: [docs/](docs/) フォルダ内に詳細な技術ドキュメント
-- **Troubleshooting**: 問題が発生した場合は、`.env`ファイルのMISTRAL_API_KEYを確認してください
+| Unit Generation | `mistral-large-latest` | Parse prompts, generate balanced stats |
+| Image Generation | `Mistral Agent Image Generation Tool` （or `PixelLab API`） | Generate 128×128 pixel art (Mistral primary, PixelLab fallback) |
+| AI Decision-Making | `mistral-large-latest` | Analyze battlefield, select counter units |
