@@ -1,5 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { Stage, Container, Graphics, Sprite, TilingSprite } from '@pixi/react';
+import { Assets } from 'pixi.js';
 import type { GameState, UnitInstance } from '../types/game';
 
 interface GameSceneProps {
@@ -12,12 +13,72 @@ const GRID_SIZE = 40; // 800px / 20マス = 40px/マス
 const BASE_WIDTH = 30;
 const BASE_HEIGHT = 100;
 
+type LoadingState = 'idle' | 'loading' | 'loaded' | 'error';
+
 export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
+  // 読み込み状態の管理
+  const [assetsLoadingState, setAssetsLoadingState] = useState<LoadingState>('idle');
+  const [loadingProgress, setLoadingProgress] = useState(0);
+
   // 背景画像のURL
   const backgroundUrl = useMemo(() => {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
     return `${apiBaseUrl}/static/backgrounds/battle_field.png`;
   }, []);
+
+  // 事前読み込みする画像URLのリスト
+  const imagesToPreload = useMemo(() => {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    const urls = new Set<string>();
+
+    // 背景画像
+    urls.add(`${apiBaseUrl}/static/backgrounds/battle_field.png`);
+
+    // ユニットスプライト (placeholderを除外)
+    gameState.units.forEach(unit => {
+      if (unit.battle_sprite_url && !unit.battle_sprite_url.includes('placeholder')) {
+        urls.add(`${apiBaseUrl}${unit.battle_sprite_url}`);
+      }
+    });
+
+    return Array.from(urls);
+  }, [gameState.units]);
+
+  // 画像の事前読み込み
+  useEffect(() => {
+    if (assetsLoadingState !== 'idle' || imagesToPreload.length === 0) {
+      return;
+    }
+
+    const preloadAssets = async () => {
+      setAssetsLoadingState('loading');
+      setLoadingProgress(0);
+
+      try {
+        let loaded = 0;
+        const total = imagesToPreload.length;
+
+        // 並行読み込み
+        const loadPromises = imagesToPreload.map(async (url) => {
+          try {
+            await Assets.load(url);
+            loaded++;
+            setLoadingProgress(Math.round((loaded / total) * 100));
+          } catch (err) {
+            console.warn(`Failed to load image: ${url}`, err);
+          }
+        });
+
+        await Promise.all(loadPromises);
+        setAssetsLoadingState('loaded');
+      } catch (error) {
+        console.error('Asset preloading error:', error);
+        setAssetsLoadingState('error');
+      }
+    };
+
+    preloadAssets();
+  }, [imagesToPreload, assetsLoadingState]);
 
   // グリッド線を描画
   const drawGridLines = useCallback((g: any) => {
@@ -125,6 +186,82 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
     },
     []
   );
+
+  // 再試行ハンドラー
+  const retryPreload = useCallback(() => {
+    setAssetsLoadingState('idle');
+  }, []);
+
+  // ローディング中の表示
+  if (assetsLoadingState === 'loading') {
+    return (
+      <div style={{
+        width: LANE_WIDTH,
+        height: LANE_HEIGHT,
+        backgroundColor: '#000',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+      }}>
+        <div style={{ fontSize: '18px', marginBottom: '16px' }}>
+          画像を読み込み中...
+        </div>
+        <div style={{
+          width: '200px',
+          height: '20px',
+          backgroundColor: '#333',
+          borderRadius: '10px',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            width: `${loadingProgress}%`,
+            height: '100%',
+            backgroundColor: '#3b82f6',
+            transition: 'width 0.3s ease',
+          }} />
+        </div>
+        <div style={{ fontSize: '14px', marginTop: '8px', color: '#888' }}>
+          {loadingProgress}%
+        </div>
+      </div>
+    );
+  }
+
+  // エラー時の表示
+  if (assetsLoadingState === 'error') {
+    return (
+      <div style={{
+        width: LANE_WIDTH,
+        height: LANE_HEIGHT,
+        backgroundColor: '#000',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+      }}>
+        <div style={{ fontSize: '18px', marginBottom: '16px', color: '#ef4444' }}>
+          画像の読み込みに失敗しました
+        </div>
+        <button
+          onClick={retryPreload}
+          style={{
+            padding: '8px 16px',
+            fontSize: '14px',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+          }}
+        >
+          再試行
+        </button>
+      </div>
+    );
+  }
 
   return (
     <Stage width={LANE_WIDTH} height={LANE_HEIGHT} options={{ background: 0x000000 }}>
