@@ -101,3 +101,208 @@
   line-height: 1.4;
   font-style: italic;
 }
+
+.ai-thought-summary {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.ai-thought-content {
+  flex: 1;
+}
+
+.ai-thought-expand {
+  background: rgba(74, 158, 255, 0.2);
+  border: 1px solid #4a9eff;
+  border-radius: 4px;
+  color: #4a9eff;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 12px;
+  transition: all 0.2s;
+  margin-left: auto;
+}
+
+.ai-thought-expand:hover {
+  background: rgba(74, 158, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.ai-thought-detail {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(74, 158, 255, 0.3);
+  animation: expandIn 0.3s ease-out;
+}
+
+@keyframes expandIn {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.analysis-section {
+  margin-bottom: 16px;
+}
+
+.analysis-section h4 {
+  color: #4a9eff;
+  font-size: 13px;
+  margin: 0 0 8px 0;
+  font-weight: bold;
+}
+
+.battlefield-assessment {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.battlefield-assessment p {
+  margin: 6px 0;
+  color: #ccc;
+}
+
+.threat-level {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.threat-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+}
+
+.candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.candidate-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(74, 158, 255, 0.3);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 12px;
+}
+
+.candidate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.candidate-name {
+  font-weight: bold;
+  color: #fff;
+}
+
+.candidate-score {
+  background: rgba(74, 158, 255, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #4a9eff;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.candidate-efficiency {
+  color: #888;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+.candidate-pros,
+.candidate-cons {
+  margin-top: 6px;
+}
+
+.candidate-pros strong,
+.candidate-cons strong {
+  color: #aaa;
+  font-size: 11px;
+}
+
+.candidate-pros ul,
+.candidate-cons ul {
+  margin: 4px 0 0 16px;
+  padding: 0;
+  color: #ccc;
+}
+
+.candidate-pros li,
+.candidate-cons li {
+  margin: 2px 0;
+}
+
+.reasoning-steps {
+  margin: 4px 0 0 16px;
+  padding: 0;
+  color: #ccc;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.reasoning-steps li {
+  margin: 6px 0;
+}
+
+.strategy-confidence {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.strategy,
+.confidence {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #ccc;
+}
+
+.strategy-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+}
+
+.confidence-bar-container {
+  flex: 1;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.confidence-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4a9eff, #4ade80);
+  transition: width 0.3s ease;
+}
+
+.confidence-value {
+  font-weight: bold;
+  color: #4a9eff;
+  min-width: 40px;
+  text-align: right;
+}

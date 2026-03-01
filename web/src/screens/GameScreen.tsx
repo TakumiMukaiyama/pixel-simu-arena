@@ -92,7 +92,8 @@ export const GameScreen: React.FC = () => {
                 timestamp: result.game_state.time_ms,
                 decision: 'spawn',
                 reason: aiDecision.reason,
-                unitName: latestAiUnit?.name || 'Unknown Unit'
+                unitName: latestAiUnit?.name || 'Unknown Unit',
+                analysis: aiDecision.analysis
               }]);
 
               console.log(`AI spawned unit: ${latestAiUnit?.name} - ${aiDecision.reason}`);
@@ -101,7 +102,8 @@ export const GameScreen: React.FC = () => {
               setAiThoughts(prev => [...prev, {
                 timestamp: result.game_state.time_ms,
                 decision: 'wait',
-                reason: aiDecision.reason
+                reason: aiDecision.reason,
+                analysis: aiDecision.analysis
               }]);
 
               console.log(`AI waiting: ${aiDecision.reason}`);

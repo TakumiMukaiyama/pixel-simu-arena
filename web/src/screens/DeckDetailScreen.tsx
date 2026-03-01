@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { deckGet } from '../api';
+import { deckGet, deckUpdate } from '../api';
 import { useError } from '../components/ErrorNotification';
 import { mapErrorToUserMessage } from '../api/errors';
 import env from '../config/env';
@@ -12,6 +12,9 @@ export const DeckDetailScreen: React.FC = () => {
   const [deck, setDeck] = useState<Deck | null>(null);
   const [units, setUnits] = useState<UnitSpec[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [isSavingName, setIsSavingName] = useState(false);
   const { showError } = useError();
   const navigate = useNavigate();
 
@@ -38,6 +41,40 @@ export const DeckDetailScreen: React.FC = () => {
 
     fetchDeck();
   }, [deckId]);
+
+  const handleStartEditName = () => {
+    if (deck) {
+      setEditedName(deck.name);
+      setIsEditingName(true);
+    }
+  };
+
+  const handleCancelEditName = () => {
+    setIsEditingName(false);
+    setEditedName('');
+  };
+
+  const handleSaveName = async () => {
+    if (!deckId || !deck || !editedName.trim()) {
+      showError('デッキ名を入力してください');
+      return;
+    }
+
+    setIsSavingName(true);
+    try {
+      await deckUpdate(
+        deckId,
+        editedName.trim(),
+        deck.unit_spec_ids
+      );
+      setDeck({ ...deck, name: editedName.trim() });
+      setIsEditingName(false);
+    } catch (error) {
+      showError(mapErrorToUserMessage(error));
+    } finally {
+      setIsSavingName(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -69,7 +106,89 @@ export const DeckDetailScreen: React.FC = () => {
         >
           ← 一覧に戻る
         </button>
-        <h1>{deck.name}</h1>
+
+        {isEditingName ? (
+          <div className="deck-name-edit">
+            <input
+              type="text"
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              placeholder="デッキ名"
+              autoFocus
+              style={{
+                padding: '8px 12px',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                border: '2px solid #3b82f6',
+                borderRadius: '8px',
+                textAlign: 'center',
+                width: '400px',
+                maxWidth: '100%',
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSaveName();
+                } else if (e.key === 'Escape') {
+                  handleCancelEditName();
+                }
+              }}
+            />
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px', justifyContent: 'center' }}>
+              <button
+                onClick={handleSaveName}
+                disabled={isSavingName || !editedName.trim()}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                }}
+              >
+                {isSavingName ? '保存中...' : '保存'}
+              </button>
+              <button
+                onClick={handleCancelEditName}
+                disabled={isSavingName}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#64748b',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+            <h1>{deck.name}</h1>
+            <button
+              onClick={handleStartEditName}
+              style={{
+                padding: '8px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '20px',
+                color: '#64748b',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              title="デッキ名を編集"
+            >
+              ✏️
+            </button>
+          </div>
+        )}
+
         <p className="deck-detail-subtitle">
           作成日: {new Date(deck.created_at).toLocaleDateString('ja-JP', {
             year: 'numeric',
@@ -91,7 +210,7 @@ export const DeckDetailScreen: React.FC = () => {
             marginTop: '16px',
           }}
         >
-          デッキを編集
+          ユニット編成を編集
         </button>
       </div>
 

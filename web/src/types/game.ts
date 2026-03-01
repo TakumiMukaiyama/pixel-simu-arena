@@ -71,3 +71,34 @@ export interface ApiError {
   status_code: number;
   error_type?: string;
 }
+
+export interface BattlefieldAssessment {
+  enemy_threat_level: 'high' | 'medium' | 'low';
+  enemy_composition: string;
+  ally_status: string;
+  strategic_situation: string;
+}
+
+export interface CandidateEvaluation {
+  unit_id: string;
+  unit_name: string;
+  score: number;
+  pros: string[];
+  cons: string[];
+  cost_efficiency: 'high' | 'medium' | 'low';
+}
+
+export interface AIAnalysis {
+  battlefield_assessment: BattlefieldAssessment;
+  candidate_evaluation: CandidateEvaluation[];
+  decision_reasoning: string[];
+  selected_strategy: 'defensive' | 'offensive' | 'economic' | 'balanced';
+  confidence: number;
+}
+
+export interface AIDecideResponse {
+  spawn_unit_spec_id: string | null;
+  wait_ms: number;
+  reason: string;
+  analysis?: AIAnalysis;
+}

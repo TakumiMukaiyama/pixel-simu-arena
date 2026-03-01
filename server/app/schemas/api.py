@@ -3,13 +3,42 @@ API入出力モデル
 
 各エンドポイントのリクエスト・レスポンスモデル
 """
-from typing import List, Optional
+from typing import List, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 from .game import Event, GameState
 from .unit import UnitSpec
+
+
+# ========== AI Analysis Models ==========
+
+class BattlefieldAssessment(BaseModel):
+    """戦場状況の分析"""
+    enemy_threat_level: Literal["high", "medium", "low"] = Field(..., description="敵の脅威レベル")
+    enemy_composition: str = Field(..., description="敵の構成説明（2-3文）")
+    ally_status: str = Field(..., description="味方の状況説明（2-3文）")
+    strategic_situation: str = Field(..., description="戦略的状況の全体評価")
+
+
+class CandidateEvaluation(BaseModel):
+    """候補ユニットの評価"""
+    unit_id: UUID = Field(..., description="ユニットID")
+    unit_name: str = Field(..., description="ユニット名")
+    score: int = Field(..., ge=0, le=100, description="評価スコア（0-100）")
+    pros: List[str] = Field(..., description="長所リスト")
+    cons: List[str] = Field(..., description="短所リスト")
+    cost_efficiency: Literal["high", "medium", "low"] = Field(..., description="コスト効率")
+
+
+class AIAnalysis(BaseModel):
+    """AI思考分析の詳細"""
+    battlefield_assessment: BattlefieldAssessment = Field(..., description="戦場評価")
+    candidate_evaluation: List[CandidateEvaluation] = Field(..., description="候補ユニット評価")
+    decision_reasoning: List[str] = Field(..., description="推論ステップ（3-5ステップ）")
+    selected_strategy: Literal["defensive", "offensive", "economic", "balanced"] = Field(..., description="選択した戦略")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="判断の信頼度")
 
 
 # ========== Match API ==========
@@ -76,7 +105,8 @@ class AIDecideResponse(BaseModel):
     """AI召喚決定レスポンス"""
     spawn_unit_spec_id: Optional[UUID] = Field(None, description="召喚するユニットID（召喚しない場合None）")
     wait_ms: int = Field(default=600, description="次回判断までの待機時間（ミリ秒）")
-    reason: str = Field(default="", description="判断理由（デバッグ用）")
+    reason: str = Field(default="", description="簡潔な判断理由（表示用）")
+    analysis: Optional[AIAnalysis] = Field(None, description="詳細な思考分析（オプション）")
 
     class Config:
         json_schema_extra = {
