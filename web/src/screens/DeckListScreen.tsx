@@ -118,7 +118,10 @@ export const DeckListScreen: React.FC = () => {
                 <div className="deck-stat">
                   <span className="stat-label">作成日</span>
                   <span className="stat-value">
-                    {new Date(deck.created_at).toLocaleDateString('ja-JP')}
+                    {deck.created_at
+                      ? new Date(deck.created_at).toLocaleDateString('ja-JP')
+                      : '不明'
+                    }
                   </span>
                 </div>
               </div>

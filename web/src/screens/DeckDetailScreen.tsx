@@ -190,11 +190,14 @@ export const DeckDetailScreen: React.FC = () => {
         )}
 
         <p className="deck-detail-subtitle">
-          作成日: {new Date(deck.created_at).toLocaleDateString('ja-JP', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
+          作成日: {deck.created_at
+            ? new Date(deck.created_at).toLocaleDateString('ja-JP', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })
+            : '不明'
+          }
         </p>
         <button
           onClick={() => navigate(`/deck-edit/${deck.id}`)}
