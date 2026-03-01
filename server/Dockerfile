@@ -16,7 +16,7 @@ RUN uv sync --frozen --no-dev
 COPY . .
 
 # Create directories for static files and database
-RUN mkdir -p static/sprites static/cards static/backgrounds data
+RUN mkdir -p static/sprites static/cards static/battle_sprites static/backgrounds data
 
 # Expose port
 EXPOSE 8000

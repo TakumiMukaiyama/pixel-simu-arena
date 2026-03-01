@@ -107,6 +107,15 @@ def create_placeholder_images():
         draw.rectangle([8, 8, 24, 24], fill=(200, 200, 200, 255))
         img.save(sprite_path)
 
+    # バトルスプライト用プレースホルダー（128x128）
+    battle_sprite_path = "static/battle_sprites/placeholder.png"
+    if not os.path.exists(battle_sprite_path):
+        os.makedirs(os.path.dirname(battle_sprite_path), exist_ok=True)
+        img = Image.new("RGBA", (128, 128), (100, 100, 100, 255))
+        draw = ImageDraw.Draw(img)
+        draw.rectangle([32, 32, 96, 96], fill=(200, 200, 200, 255))
+        img.save(battle_sprite_path)
+
     # カード用プレースホルダー（256x256）
     card_path = "static/cards/placeholder.png"
     if not os.path.exists(card_path):
