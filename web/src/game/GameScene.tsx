@@ -46,11 +46,19 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
 
   // 画像の事前読み込み
   useEffect(() => {
-    if (assetsLoadingState !== 'idle' || imagesToPreload.length === 0) {
+    if (assetsLoadingState !== 'idle') {
+      return;
+    }
+
+    // 読み込む画像がない場合は即座にloaded状態にする
+    if (imagesToPreload.length === 0) {
+      console.log('No images to preload, setting state to loaded');
+      setAssetsLoadingState('loaded');
       return;
     }
 
     const preloadAssets = async () => {
+      console.log(`Starting to preload ${imagesToPreload.length} images:`, imagesToPreload);
       setAssetsLoadingState('loading');
       setLoadingProgress(0);
 
@@ -63,13 +71,16 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
           try {
             await Assets.load(url);
             loaded++;
-            setLoadingProgress(Math.round((loaded / total) * 100));
+            const progress = Math.round((loaded / total) * 100);
+            console.log(`Loaded ${url} (${loaded}/${total}) - ${progress}%`);
+            setLoadingProgress(progress);
           } catch (err) {
             console.warn(`Failed to load image: ${url}`, err);
           }
         });
 
         await Promise.all(loadPromises);
+        console.log('All images loaded successfully');
         setAssetsLoadingState('loaded');
       } catch (error) {
         console.error('Asset preloading error:', error);
@@ -191,6 +202,9 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
   const retryPreload = useCallback(() => {
     setAssetsLoadingState('idle');
   }, []);
+
+  // デバッグ: 現在の状態をログ出力
+  console.log('Current assetsLoadingState:', assetsLoadingState);
 
   // ローディング中の表示
   if (assetsLoadingState === 'loading') {
