@@ -135,7 +135,7 @@ export const UnitCreator: React.FC<UnitCreatorProps> = ({ onCreated, onClose }) 
               >
                 ユニットを生成中...
                 <br />
-                <small>PixelLab APIで画像とステータスを生成しています</small>
+                <small>画像とステータスを生成しています</small>
               </div>
             )}
 
