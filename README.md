@@ -7,17 +7,10 @@
 ---
 
 ## 🎬 Demo
-
-### Unit Creation Demo
-> テキストプロンプト → ユニット生成 → 自動ピクセルアート生成
-
-![Unit Creation Demo](docs/images/demo_unit_creation.gif)
-*プレースホルダー: 「忍者」と入力してユニットが生成される様子*
-
 ### Battle Demo
 > リアルタイムバトル - ユニットが自律的に移動・攻撃
 
-![Battle Demo](docs/images/demo_battle.png)
+![Battle Demo](docs/images/1.png)
 *プレースホルダー: 実際のバトルシーン*
 
 ---
