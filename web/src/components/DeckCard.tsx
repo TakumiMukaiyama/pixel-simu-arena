@@ -35,15 +35,15 @@ export const DeckCard: React.FC<DeckCardProps> = ({ unit, currentCost, onSpawn }
         <div className="card-stats">
           <div className="stat">
             <span className="stat-label">Cost:</span>
-            <span className="stat-value">{unit.cost}</span>
+            <span className="stat-value" style={{ color: '#fbbf24' }}>{unit.cost}</span>
           </div>
           <div className="stat">
             <span className="stat-label">HP:</span>
-            <span className="stat-value">{unit.max_hp}</span>
+            <span className="stat-value" style={{ color: '#22c55e' }}>{unit.max_hp}</span>
           </div>
           <div className="stat">
             <span className="stat-label">ATK:</span>
-            <span className="stat-value">{unit.atk}</span>
+            <span className="stat-value" style={{ color: '#ef4444' }}>{unit.atk}</span>
           </div>
         </div>
       </div>
