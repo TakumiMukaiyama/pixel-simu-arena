@@ -1,0 +1,11 @@
+# Railway configuration for Pixel Simulation Arena (monorepo)
+
+[build]
+builder = "dockerfile"
+
+[deploy]
+startCommand = ""
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
