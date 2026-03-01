@@ -52,6 +52,15 @@ export const matchAiDecide = async (
 };
 
 /**
+ * マッチ終了
+ */
+export const matchEnd = async (
+  matchId: string
+): Promise<{ message: string; match_id: string }> => {
+  return post('/match/end', { match_id: matchId });
+};
+
+/**
  * ユニット作成
  */
 export const unitsCreate = async (

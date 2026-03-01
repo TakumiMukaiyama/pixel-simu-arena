@@ -5,7 +5,7 @@ import { StatsDisplay } from '../components/StatsDisplay';
 import { DeckSelector } from '../components/DeckSelector';
 import { AIThoughtDisplay } from '../components/AIThoughtDisplay';
 import { useError } from '../components/ErrorNotification';
-import { matchStart, matchTick, matchSpawn, matchAiDecide, galleryList, deckGet } from '../api';
+import { matchStart, matchTick, matchSpawn, matchAiDecide, matchEnd, galleryList, deckGet } from '../api';
 import { mapErrorToUserMessage } from '../api/errors';
 import type { GameState, UnitSpec } from '../types/game';
 import './GameScreen.css';
@@ -148,6 +148,12 @@ export const GameScreen: React.FC = () => {
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+      }
+      // コンポーネントのアンマウント時にマッチを終了
+      if (matchId && !gameState?.winner) {
+        matchEnd(matchId).catch(err => {
+          console.warn('Failed to end match:', err);
+        });
       }
     };
   }, [matchId, gameState?.winner]);
