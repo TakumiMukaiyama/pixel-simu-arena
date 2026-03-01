@@ -262,7 +262,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
         </Container>
       );
     });
-  }, [gameState.units, drawUnitHPBar]);
+  }, [unitIds, drawUnitHPBar]);
 
   return (
     <div style={{ position: 'relative', width: LANE_WIDTH, height: LANE_HEIGHT }}>
