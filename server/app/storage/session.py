@@ -84,12 +84,12 @@ class SessionManager:
         """
         return len(self._sessions)
 
-    def cleanup_inactive_matches(self, timeout_seconds: int = 300) -> int:
+    def cleanup_inactive_matches(self, timeout_seconds: int = 30) -> int:
         """
         一定時間更新がないマッチを削除
 
         Args:
-            timeout_seconds: タイムアウト時間（秒）デフォルトは5分
+            timeout_seconds: タイムアウト時間（秒）デフォルトは30秒
 
         Returns:
             削除されたマッチ数

@@ -107,11 +107,11 @@ async def tick_match(request: MatchTickRequest):
     """
     session_manager = get_session_manager()
 
-    # 定期的に古い試合をクリーンアップ（5分以上更新がない試合を削除）
+    # 定期的に古い試合をクリーンアップ（30秒以上更新がない試合を削除）
     # tickは頻繁に呼ばれるので、ここでクリーンアップを実行
     import random
     if random.random() < 0.01:  # 1%の確率で実行（約100tickに1回）
-        cleaned = session_manager.cleanup_inactive_matches(timeout_seconds=300)
+        cleaned = session_manager.cleanup_inactive_matches(timeout_seconds=30)
         if cleaned > 0:
             print(f"[Cleanup] Removed {cleaned} inactive matches")
 
