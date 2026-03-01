@@ -178,7 +178,7 @@ export const GameScreen: React.FC = () => {
     } catch (error) {
       showError(mapErrorToUserMessage(error));
     } finally {
-      setTimeout(() => setIsSpawning(false), 300);
+      setTimeout(() => setIsSpawning(false), 500);
     }
   };
 
