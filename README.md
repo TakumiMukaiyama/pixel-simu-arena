@@ -11,7 +11,7 @@
 ### Battle Demo
 > リアルタイムバトル - ユニットが自律的に移動・攻撃
 
-![Battle Demo](docs/images/demo_battle.png)
+![Battle Demo](./docs/images/demo_battle.png)
 
 ---
 
