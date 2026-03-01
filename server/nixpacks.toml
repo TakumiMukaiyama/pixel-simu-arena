@@ -1,14 +1,8 @@
-# Nixpacks configuration for backend
-
 [phases.setup]
-nixPkgs = ["python311", "openssl"]
+nixPkgs = ["python311", "gcc"]
 
 [phases.install]
-cmds = [
-  "pip install --upgrade pip",
-  "pip install uv",
-  "uv sync --no-dev"
-]
+cmds = ["pip install uv", "uv sync --frozen"]
 
 [phases.build]
 cmds = ["mkdir -p static/sprites static/cards static/backgrounds data"]
