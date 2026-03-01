@@ -217,6 +217,15 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
     setAssetsLoadingState('idle');
   }, []);
 
+  // デバッグ: 現在の状態をログ出力
+  console.log('[GameScene] Current state:', {
+    assetsLoadingState,
+    loadedUnitIds,
+    unitIds,
+    imagesToPreloadCount: imagesToPreload.length,
+    unitsCount: gameState.units.length
+  });
+
   // ローディング中の表示
   if (assetsLoadingState === 'loading') {
     return (
@@ -284,6 +293,32 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
         >
           再試行
         </button>
+      </div>
+    );
+  }
+
+  // idle状態の場合（デバッグ用の一時表示）
+  if (assetsLoadingState === 'idle') {
+    return (
+      <div style={{
+        width: LANE_WIDTH,
+        height: LANE_HEIGHT,
+        backgroundColor: '#222',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+      }}>
+        <div style={{ fontSize: '18px', marginBottom: '16px' }}>
+          初期化中... (idle状態)
+        </div>
+        <div style={{ fontSize: '14px', color: '#888' }}>
+          ユニット数: {gameState.units.length}
+        </div>
+        <div style={{ fontSize: '14px', color: '#888' }}>
+          読み込む画像数: {imagesToPreload.length}
+        </div>
       </div>
     );
   }
