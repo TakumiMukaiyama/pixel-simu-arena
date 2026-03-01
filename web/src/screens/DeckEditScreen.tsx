@@ -4,7 +4,7 @@ import { galleryList, deckGet, deckUpdate } from '../api';
 import { useError } from '../components/ErrorNotification';
 import { mapErrorToUserMessage } from '../api/errors';
 import env from '../config/env';
-import type { UnitSpec, Deck } from '../types/game';
+import type { UnitSpec } from '../types/game';
 import './DeckEditScreen.css';
 
 export const DeckEditScreen: React.FC = () => {
