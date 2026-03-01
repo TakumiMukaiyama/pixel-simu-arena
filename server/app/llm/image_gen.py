@@ -32,6 +32,7 @@ BATTLE_SPRITE_PARAMS = {
     "image_size": {"width": 128, "height": 128},
     "no_background": True,
     "view": "low top-down",
+    "direction": "east",  # 右向き
     "outline": "single color black outline",
     "shading": "basic shading",
     "detail": "medium detail",
