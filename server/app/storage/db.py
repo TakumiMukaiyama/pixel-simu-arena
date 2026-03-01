@@ -26,9 +26,10 @@ async def create_db_pool() -> None:
     settings = get_settings()
     _pool = await asyncpg.create_pool(
         dsn=settings.database_url,
-        min_size=2,
-        max_size=10,
-        command_timeout=60
+        min_size=5,
+        max_size=20,
+        command_timeout=30,
+        max_inactive_connection_lifetime=300  # 5分でアイドル接続を閉じる
     )
 
 
