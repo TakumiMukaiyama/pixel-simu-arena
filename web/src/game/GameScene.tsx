@@ -147,25 +147,54 @@ export const GameScene: React.FC<GameSceneProps> = ({ gameState }) => {
       <Graphics x={LANE_WIDTH - BASE_WIDTH} y={0} draw={drawAIBase} />
 
       {/* ユニット描画 */}
-      {gameState.units.map((unit) => {
-        const x = unit.pos * GRID_SIZE;
-        const y = LANE_HEIGHT / 2;
+      {useMemo(() => {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-        const battleSpriteUrl = `${apiBaseUrl}${unit.battle_sprite_url}`;
+        return gameState.units.map((unit) => {
+          const x = unit.pos * GRID_SIZE;
+          const y = LANE_HEIGHT / 2;
+          const battleSpriteUrl = `${apiBaseUrl}${unit.battle_sprite_url}`;
 
-        return (
-          <Container key={unit.instance_id} x={x} y={y}>
-            {/* バトルスプライト画像 (128x128) - 64x64にスケールダウン */}
-            <Sprite
-              image={battleSpriteUrl}
-              anchor={0.5}
-              scale={0.5}
-            />
-            {/* HPバー */}
-            <Graphics draw={drawUnitHPBar(unit)} />
-          </Container>
-        );
-      })}
+          // デバッグ情報をログ出力
+          const hasValidSprite = unit.battle_sprite_url &&
+                                !unit.battle_sprite_url.includes('placeholder');
+
+          if (!hasValidSprite) {
+            console.warn(
+              `Unit ${unit.instance_id} (${unit.name}) has invalid sprite URL: ${unit.battle_sprite_url}`
+            );
+          }
+
+          return (
+            <Container key={unit.instance_id} x={x} y={y}>
+              {/* 画像がある場合はスプライト表示 */}
+              {hasValidSprite && (
+                <Sprite
+                  image={battleSpriteUrl}
+                  anchor={0.5}
+                  scale={0.5}
+                />
+              )}
+
+              {/* フォールバック: 色付き円を表示 */}
+              {!hasValidSprite && (
+                <Graphics
+                  draw={(g) => {
+                    g.clear();
+                    g.beginFill(unit.side === 'player' ? 0x4444ff : 0xff4444, 0.8);
+                    g.drawCircle(0, 0, 25);
+                    g.endFill();
+                    g.lineStyle(2, unit.side === 'player' ? 0x6666ff : 0xff6666);
+                    g.drawCircle(0, 0, 25);
+                  }}
+                />
+              )}
+
+              {/* HPバー */}
+              <Graphics draw={drawUnitHPBar(unit)} />
+            </Container>
+          );
+        });
+      }, [gameState.units, drawUnitHPBar])}
 
     </Stage>
   );
