@@ -38,11 +38,9 @@
   font-size: 56px;
   font-family: var(--font-display);
   color: var(--color-neon-green);
-  text-shadow: var(--glow-neon-green);
   margin-bottom: var(--spacing-md);
   letter-spacing: 4px;
   position: relative;
-  animation: neon-pulse 3s ease-in-out infinite, flicker 5s infinite;
   text-align: center;
 }
 
@@ -52,7 +50,6 @@
   display: block;
   font-size: 12px;
   color: var(--color-neon-cyan);
-  text-shadow: var(--glow-neon-cyan);
   letter-spacing: 0;
   margin-bottom: var(--spacing-sm);
   opacity: 0.6;
@@ -63,7 +60,6 @@
   display: block;
   font-size: 12px;
   color: var(--color-neon-cyan);
-  text-shadow: var(--glow-neon-cyan);
   letter-spacing: 0;
   margin-top: var(--spacing-sm);
   opacity: 0.6;
@@ -140,8 +136,7 @@
 .nav-button:hover {
   border-color: var(--color-neon-green);
   color: var(--color-neon-green);
-  text-shadow: var(--glow-neon-green);
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+  box-shadow: var(--shadow-md);
   transform: translateX(10px);
 }
 
@@ -150,7 +145,6 @@
 }
 
 .nav-button:active {
-  animation: glitch 0.2s ease-in-out;
 }
 
 /* プライマリボタン */
@@ -158,15 +152,13 @@
   border-color: var(--color-neon-green);
   background: rgba(0, 255, 65, 0.1);
   color: var(--color-neon-green);
-  text-shadow: 0 0 5px var(--color-neon-green);
   font-size: 18px;
   padding: var(--spacing-lg) var(--spacing-xl);
-  animation: neon-pulse 2s ease-in-out infinite;
 }
 
 .nav-button.primary:hover {
   background: rgba(0, 255, 65, 0.2);
-  box-shadow: var(--glow-neon-green);
+  box-shadow: var(--shadow-md);
   transform: translateX(15px) scale(1.02);
 }
 
@@ -196,7 +188,7 @@
   padding: var(--spacing-lg);
   text-align: left;
   position: relative;
-  box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+  box-shadow: var(--shadow-md);
   transition: all var(--transition-normal);
 }
 
@@ -220,7 +212,7 @@
 
 .info-card:hover {
   border-color: var(--color-neon-green);
-  box-shadow: 0 0 25px rgba(0, 255, 65, 0.5);
+  box-shadow: var(--shadow-md);
   transform: translateY(-5px);
 }
 
@@ -229,7 +221,6 @@
   font-size: 18px;
   font-family: var(--font-display);
   color: var(--color-neon-cyan);
-  text-shadow: var(--glow-neon-cyan);
   margin-bottom: var(--spacing-md);
   text-align: left;
   letter-spacing: 2px;

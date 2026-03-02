@@ -34,20 +34,17 @@
 /* 召喚可能状態 */
 .deck-card.can-spawn {
   border-color: var(--color-neon-green);
-  box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
-  animation: neon-pulse 2s ease-in-out infinite;
+  box-shadow: var(--shadow-md);
 }
 
 .deck-card.can-spawn:hover {
   background: var(--color-bg-tertiary);
   transform: translateY(-8px) scale(1.05);
-  box-shadow: var(--glow-neon-green);
-  animation: glitch 0.3s ease-in-out;
+  box-shadow: var(--shadow-md);
 }
 
 .deck-card.can-spawn:active {
   transform: translateY(-4px) scale(1.02);
-  animation: glitch 0.1s ease-in-out;
 }
 
 /* 召喚不可状態 */
@@ -106,7 +103,6 @@
   font-weight: bold;
   margin-bottom: var(--spacing-xs);
   color: var(--color-neon-green);
-  text-shadow: 0 0 5px var(--color-neon-green);
   letter-spacing: 1px;
   font-family: var(--font-display);
   text-transform: uppercase;
@@ -148,9 +144,7 @@
 
 /* ホバー時のグローエフェクト強化 */
 .deck-card.can-spawn:hover .card-name {
-  animation: neon-pulse 1s ease-in-out infinite;
 }
 
 .deck-card.can-spawn:hover .stat-value {
-  text-shadow: 0 0 10px currentColor;
 }

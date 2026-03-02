@@ -40,10 +40,8 @@
   font-size: 36px;
   font-family: var(--font-display);
   color: var(--color-neon-green);
-  text-shadow: var(--glow-neon-green);
   margin-bottom: var(--spacing-sm);
   letter-spacing: 3px;
-  animation: neon-pulse 3s ease-in-out infinite;
 }
 
 .gallery-header h1::before {
@@ -90,7 +88,7 @@
 
 .gallery-header button:hover {
   background: rgba(0, 217, 255, 0.2);
-  box-shadow: var(--glow-neon-cyan);
+  box-shadow: var(--shadow-md);
   transform: scale(1.05);
 }
 
@@ -113,7 +111,7 @@
   cursor: pointer;
   transition: all var(--transition-normal);
   position: relative;
-  box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+  box-shadow: var(--shadow-md);
   font-family: var(--font-display);
 }
 
@@ -139,8 +137,7 @@
 .unit-card:hover {
   border-color: var(--color-neon-green);
   transform: translateY(-8px);
-  box-shadow: var(--glow-neon-green);
-  animation: glitch 0.3s ease-in-out;
+  box-shadow: var(--shadow-md);
 }
 
 /* 削除ボタン */
@@ -166,7 +163,7 @@
 
 .unit-card button:hover {
   background: rgba(255, 0, 110, 0.4);
-  box-shadow: var(--glow-neon-pink);
+  box-shadow: var(--shadow-md);
   transform: scale(1.1);
 }
 
@@ -211,7 +208,6 @@
   font-weight: bold;
   font-family: var(--font-display);
   color: var(--color-neon-green);
-  text-shadow: 0 0 5px var(--color-neon-green);
   margin-bottom: var(--spacing-md);
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -277,7 +273,7 @@
   max-width: 600px;
   width: 90%;
   border: 3px solid var(--color-neon-green);
-  box-shadow: var(--glow-neon-green);
+  box-shadow: var(--shadow-md);
   position: relative;
   animation: slideUp 0.5s;
   font-family: var(--font-display);
@@ -335,7 +331,7 @@
 
 .modal-close:hover {
   background: rgba(255, 0, 110, 0.2);
-  box-shadow: var(--glow-neon-pink);
+  box-shadow: var(--shadow-md);
   transform: scale(1.1);
 }
 
@@ -344,7 +340,6 @@
   font-size: 28px;
   font-family: var(--font-display);
   color: var(--color-neon-green);
-  text-shadow: var(--glow-neon-green);
   text-align: center;
   margin-bottom: var(--spacing-lg);
   letter-spacing: 3px;
@@ -370,7 +365,7 @@
 
 .modal-content button[style*="dc2626"]:hover {
   background: rgba(255, 0, 110, 0.4);
-  box-shadow: var(--glow-neon-pink);
+  box-shadow: var(--shadow-md);
 }
 
 /* モーダル画像 */
@@ -404,7 +399,7 @@
 
 .modal-stat-row:hover {
   background: rgba(0, 217, 255, 0.1);
-  box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .modal-stat-row span:first-child {
@@ -420,12 +415,10 @@
 .modal-stat-row span:last-child {
   color: var(--color-text-primary);
   font-weight: bold;
-  text-shadow: 0 0 5px currentColor;
 }
 
 .modal-stat-row .highlight {
   color: var(--color-neon-yellow);
-  text-shadow: 0 0 5px var(--color-neon-yellow);
 }
 
 /* レスポンシブ対応 */

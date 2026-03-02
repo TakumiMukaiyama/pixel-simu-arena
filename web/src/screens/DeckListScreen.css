@@ -44,10 +44,8 @@
   font-family: var(--font-display);
   font-weight: bold;
   color: var(--color-neon-green);
-  text-shadow: var(--glow-neon-green);
   margin-bottom: var(--spacing-sm);
   letter-spacing: 3px;
-  animation: neon-pulse 3s ease-in-out infinite;
 }
 
 .deck-list-header h1::before {
@@ -94,7 +92,7 @@
 
 .deck-list-header button:hover {
   background: rgba(0, 217, 255, 0.2);
-  box-shadow: var(--glow-neon-cyan);
+  box-shadow: var(--shadow-md);
   transform: scale(1.05);
 }
 
@@ -115,7 +113,7 @@
   overflow: hidden;
   transition: all var(--transition-normal);
   position: relative;
-  box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 /* スキャンラインエフェクト */
@@ -139,9 +137,8 @@
 
 .deck-list-item:hover {
   border-color: var(--color-neon-cyan);
-  box-shadow: var(--glow-neon-cyan);
+  box-shadow: var(--shadow-md);
   transform: translateY(-8px);
-  animation: glitch 0.3s ease-in-out;
 }
 
 /* 削除ボタン */
@@ -167,7 +164,7 @@
 
 .deck-list-item button:hover {
   background: rgba(255, 0, 110, 0.4);
-  box-shadow: var(--glow-neon-pink);
+  box-shadow: var(--shadow-md);
   transform: scale(1.1);
 }
 
@@ -185,7 +182,6 @@
   font-weight: bold;
   margin-bottom: var(--spacing-md);
   color: var(--color-neon-green);
-  text-shadow: 0 0 5px var(--color-neon-green);
   letter-spacing: 2px;
   text-transform: uppercase;
 }
@@ -267,7 +263,7 @@
 
 .empty-state button:hover {
   background: rgba(0, 217, 255, 0.2);
-  box-shadow: var(--glow-neon-cyan);
+  box-shadow: var(--shadow-md);
   transform: scale(1.05);
 }
 

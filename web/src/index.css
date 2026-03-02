@@ -27,10 +27,10 @@
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
 
-  /* エフェクト */
-  --glow-neon-green: 0 0 10px var(--color-neon-green), 0 0 20px var(--color-neon-green), 0 0 30px var(--color-neon-green);
-  --glow-neon-cyan: 0 0 10px var(--color-neon-cyan), 0 0 20px var(--color-neon-cyan), 0 0 30px var(--color-neon-cyan);
-  --glow-neon-pink: 0 0 10px var(--color-neon-pink), 0 0 20px var(--color-neon-pink), 0 0 30px var(--color-neon-pink);
+  /* シャドウ */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.5);
 
   /* トランジション */
   --transition-fast: 0.15s ease;
@@ -107,12 +107,10 @@ body::after {
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-neon-green);
-  box-shadow: 0 0 5px var(--color-neon-green);
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-neon-cyan);
-  box-shadow: 0 0 10px var(--color-neon-cyan);
 }
 
 /* アニメーション定義 */
@@ -127,40 +125,6 @@ body::after {
   }
 }
 
-/* グリッチエフェクト */
-@keyframes glitch {
-  0% {
-    transform: translate(0);
-  }
-  20% {
-    transform: translate(-2px, 2px);
-  }
-  40% {
-    transform: translate(-2px, -2px);
-  }
-  60% {
-    transform: translate(2px, 2px);
-  }
-  80% {
-    transform: translate(2px, -2px);
-  }
-  100% {
-    transform: translate(0);
-  }
-}
-
-/* ネオンパルス */
-@keyframes neon-pulse {
-  0%, 100% {
-    text-shadow: var(--glow-neon-green);
-    opacity: 1;
-  }
-  50% {
-    text-shadow: 0 0 5px var(--color-neon-green), 0 0 10px var(--color-neon-green);
-    opacity: 0.8;
-  }
-}
-
 /* タイプライター効果 */
 @keyframes typewriter {
   from {
@@ -168,31 +132,6 @@ body::after {
   }
   to {
     width: 100%;
-  }
-}
-
-/* フリッカー効果 */
-@keyframes flicker {
-  0%, 100% {
-    opacity: 1;
-  }
-  41.99% {
-    opacity: 1;
-  }
-  42% {
-    opacity: 0.8;
-  }
-  43% {
-    opacity: 1;
-  }
-  45.99% {
-    opacity: 1;
-  }
-  46% {
-    opacity: 0.6;
-  }
-  46.5% {
-    opacity: 1;
   }
 }
 
@@ -233,8 +172,7 @@ body::after {
   font-family: var(--font-display);
   font-size: 24px;
   color: var(--color-neon-green);
-  text-shadow: var(--glow-neon-green);
-  animation: neon-pulse 1.5s infinite;
+  animation: pulse 1.5s infinite;
 }
 
 .loading-spinner::before {
@@ -243,5 +181,5 @@ body::after {
 
 .loading-spinner::after {
   content: '_';
-  animation: flicker 0.8s infinite;
+  animation: pulse 0.8s infinite;
 }

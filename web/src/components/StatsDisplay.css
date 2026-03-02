@@ -6,7 +6,7 @@
   padding: var(--spacing-md);
   background: var(--color-bg-secondary);
   border: 2px solid var(--color-neon-cyan);
-  box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+  box-shadow: var(--shadow-md);
   margin-bottom: var(--spacing-md);
   position: relative;
   font-family: var(--font-display);
@@ -90,9 +90,7 @@
 .stat-text.large {
   font-size: 24px;
   color: var(--color-neon-green);
-  text-shadow: var(--glow-neon-green);
   font-weight: bold;
-  animation: neon-pulse 2s ease-in-out infinite;
 }
 
 /* HPバーとコストバー */

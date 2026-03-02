@@ -44,11 +44,9 @@
   font-family: var(--font-display);
   font-weight: bold;
   color: var(--color-neon-green);
-  text-shadow: var(--glow-neon-green);
   margin-bottom: var(--spacing-sm);
   letter-spacing: 3px;
   text-transform: uppercase;
-  animation: neon-pulse 3s ease-in-out infinite;
 }
 
 .deck-detail-subtitle {
@@ -76,7 +74,6 @@
   font-weight: bold;
   margin-bottom: var(--spacing-lg);
   color: var(--color-neon-cyan);
-  text-shadow: var(--glow-neon-cyan);
   text-align: center;
   letter-spacing: 2px;
 }
@@ -100,7 +97,7 @@
   overflow: hidden;
   transition: all var(--transition-normal);
   position: relative;
-  box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 /* スキャンラインエフェクト */
@@ -124,9 +121,8 @@
 
 .unit-card:hover {
   border-color: var(--color-neon-green);
-  box-shadow: var(--glow-neon-green);
+  box-shadow: var(--shadow-md);
   transform: translateY(-8px);
-  animation: glitch 0.3s ease-in-out;
 }
 
 /* カード画像 */
@@ -169,7 +165,6 @@
   font-weight: bold;
   margin-bottom: var(--spacing-md);
   color: var(--color-neon-green);
-  text-shadow: 0 0 5px var(--color-neon-green);
   text-align: center;
   letter-spacing: 2px;
   text-transform: uppercase;

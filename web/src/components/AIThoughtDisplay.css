@@ -4,7 +4,7 @@
   border: 2px solid var(--color-neon-pink);
   padding: var(--spacing-md);
   max-width: 450px;
-  box-shadow: 0 0 15px rgba(255, 0, 110, 0.4);
+  box-shadow: var(--shadow-md);
   font-family: var(--font-display);
   position: relative;
 }
@@ -49,7 +49,6 @@
   gap: var(--spacing-sm);
   font-weight: bold;
   color: var(--color-neon-pink);
-  text-shadow: var(--glow-neon-pink);
   margin-bottom: var(--spacing-md);
   font-size: 14px;
   padding-bottom: var(--spacing-sm);
@@ -120,7 +119,7 @@
 
 .ai-thought-item:hover {
   background: rgba(255, 0, 110, 0.1);
-  box-shadow: 0 0 10px rgba(255, 0, 110, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .ai-thought-item.spawn {
@@ -177,7 +176,6 @@
   color: var(--color-text-primary);
   margin-bottom: var(--spacing-xs);
   font-size: 12px;
-  text-shadow: 0 0 5px currentColor;
 }
 
 .ai-thought-item.spawn .ai-thought-action {
@@ -233,7 +231,7 @@
 
 .ai-thought-expand:hover {
   background: rgba(0, 217, 255, 0.2);
-  box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+  box-shadow: var(--shadow-md);
   transform: scale(1.1);
 }
 
@@ -263,7 +261,6 @@
 
 .analysis-section h4 {
   color: var(--color-neon-cyan);
-  text-shadow: var(--glow-neon-cyan);
   font-size: 12px;
   margin: 0 0 var(--spacing-sm) 0;
   font-weight: bold;
@@ -326,7 +323,7 @@
 
 .candidate-card:hover {
   background: rgba(0, 217, 255, 0.1);
-  box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .candidate-header {
@@ -339,7 +336,6 @@
 .candidate-name {
   font-weight: bold;
   color: var(--color-neon-green);
-  text-shadow: 0 0 5px var(--color-neon-green);
   font-family: var(--font-display);
 }
 
@@ -454,7 +450,6 @@
 .confidence-value {
   font-weight: bold;
   color: var(--color-neon-cyan);
-  text-shadow: var(--glow-neon-cyan);
   min-width: 40px;
   text-align: right;
   font-family: var(--font-display);

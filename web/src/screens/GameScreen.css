@@ -40,9 +40,7 @@
   font-size: 32px;
   font-family: var(--font-display);
   color: var(--color-neon-green);
-  text-shadow: var(--glow-neon-green);
   letter-spacing: 3px;
-  animation: neon-pulse 3s ease-in-out infinite;
 }
 
 .game-header h1::before {
@@ -72,7 +70,7 @@
   justify-content: center;
   background: #000;
   border: 2px solid var(--color-neon-green);
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   position: relative;
 }
@@ -118,7 +116,7 @@
   padding: var(--spacing-md);
   background: var(--color-bg-secondary);
   border: 2px solid var(--color-neon-cyan);
-  box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+  box-shadow: var(--shadow-md);
   position: relative;
   z-index: 1;
 }
@@ -189,8 +187,8 @@
   padding: var(--spacing-2xl);
   text-align: center;
   border: 3px solid var(--color-neon-green);
-  box-shadow: var(--glow-neon-green);
-  animation: slideUp 0.5s, glitch 0.5s ease-in-out 0.5s;
+  box-shadow: var(--shadow-md);
+  animation: slideUp 0.5s;
   position: relative;
   font-family: var(--font-display);
   min-width: 400px;
@@ -232,10 +230,8 @@
   font-size: 56px;
   font-family: var(--font-display);
   color: var(--color-neon-green);
-  text-shadow: var(--glow-neon-green);
   margin-bottom: var(--spacing-md);
   letter-spacing: 4px;
-  animation: neon-pulse 1s ease-in-out infinite;
 }
 
 .victory-message .win h2::before {
@@ -253,10 +249,8 @@
   font-size: 56px;
   font-family: var(--font-display);
   color: var(--color-neon-pink);
-  text-shadow: var(--glow-neon-pink);
   margin-bottom: var(--spacing-md);
   letter-spacing: 4px;
-  animation: flicker 2s ease-in-out infinite;
 }
 
 .victory-message .lose h2::before {
@@ -303,9 +297,8 @@
 
 .victory-message button:hover {
   background: rgba(0, 255, 65, 0.2);
-  box-shadow: var(--glow-neon-green);
+  box-shadow: var(--shadow-md);
   transform: scale(1.1);
-  animation: glitch 0.3s ease-in-out;
 }
 
 /* レスポンシブ対応 */
